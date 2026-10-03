@@ -2,11 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class ComboItem extends Pivot
 {
+    use HasFactory;
+
+    /**
+     * The base Pivot class guesses a singular table name; the migration uses the plural form.
+     *
+     * @var string
+     */
+    protected $table = 'combo_items';
+
     /**
      * The table has its own auto-incrementing primary key, unlike a typical pivot.
      *
