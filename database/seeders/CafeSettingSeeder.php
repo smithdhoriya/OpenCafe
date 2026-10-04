@@ -56,7 +56,7 @@ class CafeSettingSeeder extends Seeder
             ],
             [
                 'key' => 'currency',
-                'value' => 'USD',
+                'value' => 'INR',
                 'type' => SettingType::String,
                 'group' => 'general',
                 'label' => 'Currency',

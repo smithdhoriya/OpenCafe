@@ -26,6 +26,26 @@
     --color-accent: var(--color-neutral-800);
     --color-accent-content: var(--color-neutral-800);
     --color-accent-foreground: var(--color-white);
+
+    /* Neutral off-white/charcoal palette for the customer-facing site (scoped via
+       .theme-customer). Named cream/espresso for historical reasons, but tuned as a
+       modern neutral scale rather than a warm brown cafe palette. */
+    --color-cream-50: #fafaf9;
+    --color-cream-100: #f2f1ef;
+    --color-cream-200: #e4e2de;
+    --color-cream-300: #cfccc6;
+    --color-cream-400: #b0ada6;
+    --color-espresso-50: #f7f7f6;
+    --color-espresso-100: #ebebe9;
+    --color-espresso-200: #d9d8d5;
+    --color-espresso-300: #b8b6b2;
+    --color-espresso-400: #8f8d8a;
+    --color-espresso-500: #6d6b68;
+    --color-espresso-600: #504e4b;
+    --color-espresso-700: #383634;
+    --color-espresso-800: #242321;
+    --color-espresso-900: #171615;
+    --color-espresso-950: #0d0c0c;
 }
 
 @layer theme {
@@ -33,6 +53,22 @@
         --color-accent: var(--color-white);
         --color-accent-content: var(--color-white);
         --color-accent-foreground: var(--color-neutral-800);
+    }
+
+    /* Scopes the orange/coral brand accent to customer-facing pages only — the
+       admin/auth screens keep the neutral accent defined above. The accent itself
+       stays identical across light/dark so the brand reads the same in both; only
+       the "content" (text-on-page) variant shifts for background contrast. */
+    .theme-customer {
+        --color-accent: var(--color-orange-600);
+        --color-accent-content: var(--color-orange-700);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .dark .theme-customer {
+        --color-accent: var(--color-orange-600);
+        --color-accent-content: var(--color-orange-400);
+        --color-accent-foreground: var(--color-white);
     }
 }
 
@@ -45,6 +81,10 @@
     ::file-selector-button {
         border-color: var(--color-gray-200, currentColor);
     }
+}
+
+[x-cloak] {
+    display: none !important;
 }
 
 [data-flux-field] {

@@ -14,21 +14,20 @@ class MenuCategorySeeder extends Seeder
     public function run(): void
     {
         $categories = [
-            ['name' => 'Coffee', 'description' => 'Espresso-based drinks and brewed coffee.'],
-            ['name' => 'Tea', 'description' => 'Hot and iced teas.'],
-            ['name' => 'Cold Drinks', 'description' => 'Iced coffees, smoothies, and sodas.'],
-            ['name' => 'Breakfast', 'description' => 'Morning plates served until noon.'],
-            ['name' => 'Sandwiches', 'description' => 'Toasted sandwiches and wraps.'],
-            ['name' => 'Pastries', 'description' => 'Freshly baked pastries and bread.'],
-            ['name' => 'Desserts', 'description' => 'Sweet treats to finish your meal.'],
-            ['name' => 'Specials', 'description' => 'Seasonal and limited-time offerings.'],
+            'Burgers',
+            'Pizzas',
+            'Frankie',
+            'Coffee / Beverages',
+            'Sandwich',
+            'Fries',
+            'Vada Pav',
         ];
 
-        foreach ($categories as $index => $category) {
+        foreach ($categories as $index => $name) {
             MenuCategory::factory()->create([
-                'name' => $category['name'],
-                'slug' => Str::slug($category['name']),
-                'description' => $category['description'],
+                'name' => $name,
+                'slug' => Str::slug($name),
+                'description' => null,
                 'sort_order' => $index,
             ]);
         }

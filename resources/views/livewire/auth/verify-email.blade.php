@@ -34,18 +34,18 @@ new #[Layout('components.layouts.auth')] class extends Component {
     }
 }; ?>
 
-<div class="mt-4 flex flex-col gap-6">
-    <div class="text-center text-sm text-gray-600">
-        {{ __('Please verify your email address by clicking on the link we just emailed to you.') }}
-    </div>
+<div class="flex flex-col gap-6">
+    <x-auth-header
+        title="Verify your email"
+        description="Please verify your email address by clicking on the link we just emailed to you."
+    />
 
-    @if (session('status') == 'verification-link-sent')
-        <div class="font-medium text-center text-sm text-green-600">
-            {{ __('A new verification link has been sent to the email address you provided during registration.') }}
-        </div>
-    @endif
+    <x-auth-session-status
+        class="text-center"
+        :status="session('status') === 'verification-link-sent' ? __('A new verification link has been sent to the email address you provided during registration.') : null"
+    />
 
-    <div class="flex flex-col items-center justify-between space-y-3">
+    <div class="flex flex-col items-center justify-center gap-3">
         <flux:button wire:click="sendVerification" variant="primary" class="w-full">
             {{ __('Resend verification email') }}
         </flux:button>
@@ -53,7 +53,7 @@ new #[Layout('components.layouts.auth')] class extends Component {
         <button
             wire:click="logout"
             type="submit"
-            class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+            class="rounded-md text-sm font-medium text-espresso-600 underline underline-offset-4 transition hover:text-accent-content focus-visible:ring-2 focus-visible:ring-accent focus-visible:outline-none dark:text-cream-300"
         >
             {{ __('Log out') }}
         </button>
