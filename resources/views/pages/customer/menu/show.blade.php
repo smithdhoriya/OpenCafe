@@ -110,17 +110,25 @@ $addToCart = function () {
     </nav>
 
     <div class="grid gap-12 lg:grid-cols-2 lg:items-start">
-        {{-- Reserved for a future 3D / scroll-rotation food presentation --}}
+        {{-- Scroll-controlled 3D tilt stage — see resources/js/scroll-tilt.js --}}
         <div data-item-visual data-hero-stage class="relative mx-auto aspect-square w-full max-w-lg lg:sticky lg:top-24">
             <div class="absolute inset-0 rounded-[2.5rem] bg-linear-to-br from-orange-200 via-orange-100 to-espresso-200 opacity-70 blur-2xl dark:from-espresso-700 dark:via-espresso-800 dark:to-espresso-900"></div>
 
+            <div aria-hidden="true" data-tilt-shadow class="absolute inset-x-12 bottom-6 h-12 rounded-full bg-espresso-900/25 blur-xl dark:bg-black/50"></div>
+
             <div class="absolute inset-0 flex items-center justify-center overflow-hidden rounded-[2.5rem] bg-linear-to-br from-orange-100 to-cream-50 shadow-xl ring-1 ring-espresso-900/5 dark:from-espresso-800 dark:to-espresso-900 dark:ring-cream-50/5">
-                <x-customer.category-icon :slug="$menuItem->category?->slug" class="size-28 text-espresso-400/50 dark:text-cream-100/25" />
+                <div data-tilt-target class="size-4/5">
+                    <x-customer.menu-image :item="$menuItem" eager class="size-full rounded-[1.75rem] object-cover" />
+                </div>
             </div>
 
             @if ($menuItem->is_featured)
                 <flux:badge color="orange" class="absolute top-5 left-5 shadow-sm">Featured</flux:badge>
             @endif
+
+            @unless ($menuItem->is_available)
+                <flux:badge color="zinc" class="absolute top-5 right-5 shadow-sm">Currently unavailable</flux:badge>
+            @endunless
         </div>
 
         <div class="flex flex-col gap-6">
@@ -147,6 +155,24 @@ $addToCart = function () {
                 <div class="flex items-center gap-2 text-sm text-espresso-500 dark:text-cream-300">
                     <flux:icon.clock variant="micro" />
                     Ready in about {{ $menuItem->preparation_time_minutes }} minutes
+                </div>
+            @endif
+
+            @if (! empty($menuItem->ingredients))
+                <div class="rounded-2xl border border-espresso-100 bg-white p-5 dark:border-espresso-700 dark:bg-espresso-800/40">
+                    <flux:heading size="sm" class="mb-3 flex items-center gap-2">
+                        <flux:icon.list-bullet variant="micro" class="text-orange-600 dark:text-orange-400" />
+                        What's inside
+                    </flux:heading>
+
+                    <div class="flex flex-wrap gap-2">
+                        @foreach ($menuItem->ingredients as $ingredient)
+                            <span class="inline-flex items-center gap-1.5 rounded-xl border border-espresso-200 bg-cream-50 px-3 py-1.5 text-sm font-medium text-espresso-700 dark:border-espresso-700 dark:bg-espresso-900 dark:text-cream-200">
+                                <flux:icon.check-circle variant="micro" class="size-3.5 text-orange-600 dark:text-orange-400" />
+                                {{ $ingredient }}
+                            </span>
+                        @endforeach
+                    </div>
                 </div>
             @endif
 
@@ -198,11 +224,11 @@ $addToCart = function () {
                     <span class="text-sm font-medium text-espresso-700 dark:text-cream-200">Quantity</span>
 
                     <div class="flex items-center gap-3 rounded-xl border border-espresso-200 bg-white px-3 py-1 dark:border-espresso-700 dark:bg-espresso-900">
-                        <button type="button" wire:click="decrementQuantity" class="flex size-6 items-center justify-center text-espresso-600 hover:text-accent-content dark:text-cream-200" aria-label="Decrease quantity">
+                        <button type="button" wire:click="decrementQuantity" @disabled(! $menuItem->is_available) class="flex size-6 items-center justify-center text-espresso-600 hover:text-accent-content disabled:pointer-events-none disabled:opacity-40 dark:text-cream-200" aria-label="Decrease quantity">
                             <flux:icon.minus variant="micro" />
                         </button>
                         <span class="w-4 text-center font-medium">{{ $quantity }}</span>
-                        <button type="button" wire:click="incrementQuantity" class="flex size-6 items-center justify-center text-espresso-600 hover:text-accent-content dark:text-cream-200" aria-label="Increase quantity">
+                        <button type="button" wire:click="incrementQuantity" @disabled(! $menuItem->is_available) class="flex size-6 items-center justify-center text-espresso-600 hover:text-accent-content disabled:pointer-events-none disabled:opacity-40 dark:text-cream-200" aria-label="Increase quantity">
                             <flux:icon.plus variant="micro" />
                         </button>
                     </div>
@@ -211,8 +237,8 @@ $addToCart = function () {
                 <div class="flex items-center justify-between gap-4 border-t border-espresso-200 pt-5 dark:border-espresso-700">
                     <x-customer.price :amount="$this->totalPrice" class="text-2xl text-accent-content" />
 
-                    <flux:button wire:click="addToCart" variant="primary" icon="shopping-bag">
-                        Add to cart
+                    <flux:button wire:click="addToCart" variant="primary" icon="shopping-bag" :disabled="! $menuItem->is_available">
+                        {{ $menuItem->is_available ? 'Add to cart' : 'Unavailable' }}
                     </flux:button>
                 </div>
             </div>

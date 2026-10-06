@@ -14,6 +14,7 @@ title('OpenCafe — Great coffee, honestly made.');
 state([
     'categories' => fn () => MenuCategory::query()->where('is_active', true)->orderBy('sort_order')->get(),
     'featuredItems' => fn () => MenuItem::query()->with('category')->where('is_available', true)->where('is_featured', true)->orderBy('sort_order')->limit(4)->get(),
+    'heroMenuItem' => fn () => MenuItem::query()->where('slug', 'mexican-pizza')->first(),
     'offers' => fn () => Offer::query()->where('is_active', true)->limit(3)->get(),
     'combos' => fn () => Combo::query()->where('is_available', true)->orderBy('sort_order')->limit(3)->get(),
     'averageRating' => fn () => round(Review::query()->where('status', ReviewStatus::Approved)->where('is_visible', true)->avg('rating') ?? 0, 1),
@@ -59,12 +60,21 @@ state([
                 @endif
             </div>
 
-            {{-- Reserved for a future 3D / scroll-rotation food presentation --}}
+            {{-- Scroll-controlled 3D tilt stage — see resources/js/scroll-tilt.js --}}
             <div data-hero-visual data-hero-stage class="relative mx-auto aspect-square w-full max-w-md">
                 <div class="absolute inset-0 rounded-full bg-linear-to-br from-orange-200 via-orange-100 to-espresso-200 opacity-70 blur-2xl dark:from-espresso-700 dark:via-espresso-800 dark:to-espresso-900"></div>
                 <div class="absolute inset-6 rounded-[2.5rem] border border-orange-900/10 dark:border-cream-50/10"></div>
+
+                <div aria-hidden="true" data-tilt-shadow class="absolute inset-x-10 bottom-6 h-10 rounded-full bg-espresso-900/25 blur-xl dark:bg-black/50"></div>
+
                 <div class="absolute inset-0 flex items-center justify-center overflow-hidden rounded-[2.5rem] bg-linear-to-br from-orange-100 to-cream-50 shadow-xl ring-1 ring-espresso-900/5 dark:from-espresso-800 dark:to-espresso-900 dark:ring-cream-50/5">
-                    <flux:icon.coffee variant="outline" class="size-20 text-orange-600/70 dark:text-orange-400/50" />
+                    @if ($heroMenuItem)
+                        <div data-tilt-target class="size-4/5">
+                            <x-customer.menu-image :item="$heroMenuItem" eager class="size-full rounded-[1.75rem] object-cover" />
+                        </div>
+                    @else
+                        <flux:icon.coffee variant="outline" class="size-20 text-orange-600/70 dark:text-orange-400/50" />
+                    @endif
                 </div>
             </div>
         </div>

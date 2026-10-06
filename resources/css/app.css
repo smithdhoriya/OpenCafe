@@ -87,6 +87,29 @@
     display: none !important;
 }
 
+/* Scroll/pointer-controlled 3D tilt — see resources/js/scroll-tilt.js */
+[data-hero-stage] {
+    perspective: 1200px;
+}
+
+[data-tilt-target] {
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: transform 150ms ease-out;
+}
+
+[data-tilt-shadow] {
+    transition: opacity 150ms ease-out, transform 150ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    [data-tilt-target],
+    [data-tilt-shadow] {
+        transition: none !important;
+        transform: none !important;
+    }
+}
+
 [data-flux-field] {
     @apply grid gap-2;
 }

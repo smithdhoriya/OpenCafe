@@ -4,9 +4,8 @@
 
 <flux:card {{ $attributes->class('group flex h-full flex-col gap-4 overflow-hidden border-espresso-100 bg-white p-0 shadow-xs transition duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:border-espresso-700 dark:bg-espresso-800') }}>
     <div data-item-visual class="relative aspect-[4/3] overflow-hidden bg-linear-to-br from-orange-100 via-orange-50 to-espresso-200 dark:from-espresso-700 dark:via-espresso-800 dark:to-espresso-900">
-        {{-- Placeholder visual treatment until real photography / 3D presentation is added --}}
-        <div class="absolute inset-0 flex items-center justify-center transition duration-300 group-hover:scale-110">
-            <x-customer.category-icon :slug="$item->category?->slug" class="size-14 text-espresso-400/50 dark:text-cream-100/25" />
+        <div class="absolute inset-0 transition duration-300 group-hover:scale-110">
+            <x-customer.menu-image :item="$item" class="size-full object-cover" />
         </div>
 
         @if ($item->is_featured)
