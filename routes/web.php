@@ -17,6 +17,8 @@ Route::middleware(['auth'])->group(function () {
     Volt::route('settings/appearance', 'settings.appearance')->name('settings.appearance');
 
     Volt::route('account/addresses', 'customer.addresses.index')->name('addresses.index');
+
+    Volt::route('checkout', 'customer.checkout.index')->name('checkout.index');
 });
 
 require __DIR__.'/auth.php';

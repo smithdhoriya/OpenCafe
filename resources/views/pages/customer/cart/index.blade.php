@@ -57,6 +57,12 @@ $removeItem = function (int $cartItemId) {
 ?>
 
 <div class="mx-auto max-w-3xl px-6 py-20 lg:px-8">
+    @if (session('status'))
+        <div class="mb-6 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300">
+            {{ session('status') }}
+        </div>
+    @endif
+
     @if ($this->items->isEmpty())
         <div class="relative flex flex-col items-center gap-5 overflow-hidden rounded-3xl border border-dashed border-espresso-200 bg-cream-100 px-6 py-16 text-center dark:border-espresso-700 dark:bg-espresso-800/40">
             <div class="pointer-events-none absolute top-1/2 left-1/2 size-56 -translate-x-1/2 -translate-y-1/2 rounded-full bg-orange-300/20 blur-3xl dark:bg-orange-500/10"></div>
@@ -136,5 +142,9 @@ $removeItem = function (int $cartItemId) {
             <flux:heading size="sm">Subtotal</flux:heading>
             <x-customer.price :amount="$this->subtotal" class="text-xl text-accent-content" />
         </div>
+
+        <flux:button as="a" href="{{ route('checkout.index') }}" wire:navigate variant="primary" class="mt-6 w-full">
+            Proceed to checkout
+        </flux:button>
     @endif
 </div>
