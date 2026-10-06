@@ -32,6 +32,9 @@
             <flux:separator vertical class="mx-1 h-6 max-sm:hidden" />
 
             @auth
+                <flux:button as="a" href="{{ route('addresses.index') }}" wire:navigate variant="ghost" class="max-sm:hidden">
+                    Addresses
+                </flux:button>
                 <flux:button as="a" href="{{ route('dashboard') }}" wire:navigate variant="primary" class="max-sm:hidden">
                     Dashboard
                 </flux:button>
@@ -66,9 +69,18 @@
                 </flux:navlist.item>
             @endforeach
 
-            @guest
-                <flux:separator class="my-2" />
+            <flux:separator class="my-2" />
 
+            @auth
+                <div class="flex flex-col gap-2">
+                    <flux:button as="a" href="{{ route('addresses.index') }}" wire:navigate variant="ghost" @click="open = false">
+                        Addresses
+                    </flux:button>
+                    <flux:button as="a" href="{{ route('dashboard') }}" wire:navigate variant="primary" @click="open = false">
+                        Dashboard
+                    </flux:button>
+                </div>
+            @else
                 <div class="flex flex-col gap-2">
                     <flux:button as="a" href="{{ route('login') }}" wire:navigate variant="ghost" @click="open = false">
                         Log in
@@ -77,7 +89,7 @@
                         Sign up
                     </flux:button>
                 </div>
-            @endguest
+            @endauth
         </nav>
     </div>
 </div>
