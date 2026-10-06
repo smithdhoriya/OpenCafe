@@ -2,7 +2,9 @@
 
 use App\Enums\ReviewStatus;
 use App\Enums\VariantSelectionType;
+use App\Models\Cart;
 use App\Models\MenuItem;
+use App\Models\MenuItemVariant;
 use App\Models\Review;
 use Flux\Flux;
 use function Livewire\Volt\{computed, layout, mount, state, title};
@@ -80,12 +82,50 @@ $decrementQuantity = function () {
     $this->quantity = max(1, $this->quantity - 1);
 };
 
+// cart_items only stores one menu_item_variant_id per line, so when an item
+// has multiple variant groups we persist just the first selected variant —
+// see Cart::addItem() for the full note on this schema limitation.
+$resolveSelectedVariant = function (): ?MenuItemVariant {
+    foreach ($this->menuItem->variantGroups as $group) {
+        $selection = $this->selectedVariants[$group->id] ?? null;
+        $variantId = is_array($selection) ? ($selection[0] ?? null) : $selection;
+
+        if ($variantId === null) {
+            continue;
+        }
+
+        if ($variant = $group->variants->firstWhere('id', $variantId)) {
+            return $variant;
+        }
+    }
+
+    return null;
+};
+
 $addToCart = function () {
     if (! auth()->check()) {
         session()->flash('status', 'Please log in to add items to your cart.');
 
         return redirect()->guest(route('login'));
     }
+
+    if (! $this->menuItem->is_available) {
+        Flux::toast(
+            heading: 'Unavailable',
+            text: 'This item is currently unavailable.',
+            variant: 'danger',
+        );
+
+        return;
+    }
+
+    Cart::firstOrCreateForUser(auth()->user())->addItem(
+        $this->menuItem,
+        $this->resolveSelectedVariant(),
+        max(1, (int) $this->quantity),
+    );
+
+    $this->dispatch('cart-updated');
 
     Flux::toast(
         heading: 'Added to cart',

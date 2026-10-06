@@ -27,7 +27,7 @@
         <div class="flex items-center gap-1.5 sm:gap-2.5">
             <x-customer.theme-toggle />
 
-            <x-customer.cart-indicator />
+            <livewire:customer.cart-indicator />
 
             <flux:separator vertical class="mx-1 h-6 max-sm:hidden" />
 
