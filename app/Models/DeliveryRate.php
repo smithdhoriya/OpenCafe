@@ -38,4 +38,24 @@ class DeliveryRate extends Model
     {
         return $this->hasMany(OrderDelivery::class);
     }
+
+    /**
+     * Find the active rate tier covering the given distance, if any.
+     *
+     * A distance that falls on a tier boundary is resolved by the lowest
+     * matching min_distance_km (e.g. 2km belongs to the 0-2km tier, not 2-5km).
+     */
+    public static function forDistance(float $km): ?self
+    {
+        return static::query()
+            ->where('is_active', true)
+            ->where('min_distance_km', '<=', $km)
+            ->where(function ($query) use ($km) {
+                $query->whereNull('max_distance_km')
+                    ->orWhere('max_distance_km', '>=', $km);
+            })
+            ->orderBy('min_distance_km')
+            ->orderBy('sort_order')
+            ->first();
+    }
 }
