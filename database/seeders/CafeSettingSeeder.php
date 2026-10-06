@@ -92,11 +92,27 @@ class CafeSettingSeeder extends Seeder
             ],
             [
                 'key' => 'min_order_for_delivery',
-                'value' => '10.00',
+                'value' => '100.00',
                 'type' => SettingType::Decimal,
                 'group' => 'delivery',
                 'label' => 'Minimum Order for Delivery',
                 'is_public' => true,
+            ],
+            [
+                'key' => 'cafe_latitude',
+                'value' => '12.9716000',
+                'type' => SettingType::Decimal,
+                'group' => 'delivery',
+                'label' => 'Cafe Latitude',
+                'is_public' => false,
+            ],
+            [
+                'key' => 'cafe_longitude',
+                'value' => '77.5946000',
+                'type' => SettingType::Decimal,
+                'group' => 'delivery',
+                'label' => 'Cafe Longitude',
+                'is_public' => false,
             ],
             [
                 'key' => 'dine_in_enabled',

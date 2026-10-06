@@ -13,9 +13,8 @@ class DeliveryRateSeeder extends Seeder
     public function run(): void
     {
         $tiers = [
-            ['min' => 0, 'max' => 2, 'charge' => 2.00],
-            ['min' => 2, 'max' => 5, 'charge' => 3.50],
-            ['min' => 5, 'max' => 10, 'charge' => 5.00],
+            ['min' => 0, 'max' => 2, 'charge' => 20.00],
+            ['min' => 2, 'max' => 5, 'charge' => 40.00],
         ];
 
         foreach ($tiers as $sortOrder => $tier) {
@@ -26,11 +25,5 @@ class DeliveryRateSeeder extends Seeder
                 'sort_order' => $sortOrder,
             ]);
         }
-
-        DeliveryRate::factory()->openEnded()->create([
-            'min_distance_km' => 10,
-            'charge' => 7.50,
-            'sort_order' => count($tiers),
-        ]);
     }
 }
