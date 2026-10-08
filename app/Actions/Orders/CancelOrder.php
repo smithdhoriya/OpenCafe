@@ -23,16 +23,24 @@ class CancelOrder
             throw ValidationException::withMessages(['order' => 'Order not found.']);
         }
 
+        $cancelledAt = now();
+
         $cancelled = $user->orders()
             ->whereKey($orderId)
             ->where('status', OrderStatus::Pending)
-            ->update(['status' => OrderStatus::Cancelled]);
+            ->update([
+                'status' => OrderStatus::Cancelled,
+                'cancelled_at' => $cancelledAt,
+                'cancellation_reason' => 'Cancelled by customer',
+            ]);
 
         if (! $cancelled) {
             throw ValidationException::withMessages(['order' => 'This order can no longer be cancelled.']);
         }
 
         $order->status = OrderStatus::Cancelled;
+        $order->cancelled_at = $cancelledAt;
+        $order->cancellation_reason = 'Cancelled by customer';
 
         return $order;
     }

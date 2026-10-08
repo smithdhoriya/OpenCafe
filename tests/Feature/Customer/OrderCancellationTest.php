@@ -26,6 +26,19 @@ test('a pending order becomes cancelled', function () {
     expect($order->refresh()->status)->toBe(OrderStatus::Cancelled);
 });
 
+test('cancelling a pending order records the cancellation metadata', function () {
+    $user = User::factory()->create();
+    $order = Order::factory()->for($user)->pending()->create();
+
+    app(CancelOrder::class)->handle($user, $order->id);
+
+    $order->refresh();
+
+    expect($order->status)->toBe(OrderStatus::Cancelled);
+    expect($order->cancelled_at)->not->toBeNull();
+    expect($order->cancellation_reason)->toBe('Cancelled by customer');
+});
+
 test('a cancelled order is visible with cancelled status', function () {
     $user = User::factory()->create();
     $order = Order::factory()->for($user)->pending()->create();
@@ -45,7 +58,11 @@ test('orders that are not pending cannot be cancelled', function (OrderStatus $s
     expect(fn () => app(CancelOrder::class)->handle($user, $order->id))
         ->toThrow(ValidationException::class);
 
-    expect($order->refresh()->status)->toBe($status);
+    $order->refresh();
+
+    expect($order->status)->toBe($status);
+    expect($order->cancelled_at)->toBeNull();
+    expect($order->cancellation_reason)->toBeNull();
 })->with([
     'confirmed' => OrderStatus::Confirmed,
     'preparing' => OrderStatus::Preparing,
@@ -62,7 +79,11 @@ test('another users order cannot be cancelled', function () {
     expect(fn () => app(CancelOrder::class)->handle($intruder, $order->id))
         ->toThrow(ValidationException::class);
 
-    expect($order->refresh()->status)->toBe(OrderStatus::Pending);
+    $order->refresh();
+
+    expect($order->status)->toBe(OrderStatus::Pending);
+    expect($order->cancelled_at)->toBeNull();
+    expect($order->cancellation_reason)->toBeNull();
 });
 
 test('a guest cannot reach the cancellation action', function () {
@@ -73,12 +94,20 @@ test('a guest cannot reach the cancellation action', function () {
 
 test('an already cancelled order cannot be cancelled again', function () {
     $user = User::factory()->create();
-    $order = Order::factory()->for($user)->create(['status' => OrderStatus::Cancelled]);
+    $order = Order::factory()->for($user)->create([
+        'status' => OrderStatus::Cancelled,
+        'cancelled_at' => null,
+        'cancellation_reason' => null,
+    ]);
 
     expect(fn () => app(CancelOrder::class)->handle($user, $order->id))
         ->toThrow(ValidationException::class);
 
-    expect($order->refresh()->status)->toBe(OrderStatus::Cancelled);
+    $order->refresh();
+
+    expect($order->status)->toBe(OrderStatus::Cancelled);
+    expect($order->cancelled_at)->toBeNull();
+    expect($order->cancellation_reason)->toBeNull();
 });
 
 test('the cancellation action is not shown when cancellation is unavailable', function () {
