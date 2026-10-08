@@ -1,5 +1,9 @@
 <?php
 
+use App\Actions\Orders\CancelOrder;
+use App\Enums\OrderStatus;
+use Flux\Flux;
+use Illuminate\Validation\ValidationException;
 use function Livewire\Volt\{layout, mount, state, title};
 
 layout('components.layouts.customer');
@@ -22,6 +26,24 @@ mount(function (int $orderId) {
 
     title("Order {$order->order_number} — OpenCafe");
 });
+
+$cancel = function (CancelOrder $cancelOrder) {
+    try {
+        $cancelOrder->handle(auth()->user(), $this->order->id);
+    } catch (ValidationException $e) {
+        Flux::toast(
+            text: $e->validator->errors()->first(),
+            heading: 'Unable to cancel order',
+            variant: 'danger',
+        );
+
+        return;
+    }
+
+    $this->order->status = OrderStatus::Cancelled;
+
+    Flux::toast(text: 'Your order has been cancelled.', heading: 'Order cancelled', variant: 'success');
+};
 
 ?>
 
@@ -93,6 +115,17 @@ mount(function (int $orderId) {
         <div class="rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800 dark:border-orange-500/30 dark:bg-orange-500/10 dark:text-orange-300">
             Payment is not collected online yet — this order is marked <strong>unpaid</strong> and will be settled in person.
         </div>
+
+        @if ($order->status === OrderStatus::Pending)
+            <flux:button
+                wire:click="cancel"
+                wire:confirm="Cancel this order? This cannot be undone."
+                variant="danger"
+                class="w-full"
+            >
+                Cancel order
+            </flux:button>
+        @endif
 
         <flux:button as="a" href="{{ route('menu.index') }}" wire:navigate variant="primary" class="w-full">
             Back to menu
