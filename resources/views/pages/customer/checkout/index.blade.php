@@ -1,10 +1,13 @@
 <?php
 
+use App\Actions\Orders\CreateOrderFromCart;
 use App\Enums\OrderType;
 use App\Models\CafeSetting;
 use App\Models\Cart;
 use App\Models\DeliveryRate;
 use App\Support\Geo;
+use Flux\Flux;
+use Illuminate\Validation\ValidationException;
 use function Livewire\Volt\{computed, layout, mount, on, state, title};
 
 layout('components.layouts.customer');
@@ -13,6 +16,7 @@ title('Checkout — OpenCafe');
 state([
     'fulfillmentType' => OrderType::Takeaway->value,
     'selectedAddressId' => null,
+    'placingOrder' => false,
 ]);
 
 mount(function () {
@@ -130,6 +134,37 @@ $canCheckout = computed(function () {
     return $this->deliveryAvailable;
 });
 
+// The actual pricing/eligibility are always recalculated inside the action from
+// fresh server state — the client only ever supplies which fulfillment type and
+// which (user-owned) address id were chosen.
+$placeOrder = function (CreateOrderFromCart $createOrderFromCart) {
+    if ($this->placingOrder) {
+        return;
+    }
+
+    $this->placingOrder = true;
+
+    try {
+        $order = $createOrderFromCart->handle(
+            auth()->user(),
+            OrderType::tryFrom($this->fulfillmentType) ?? OrderType::Takeaway,
+            $this->selectedAddressId !== null ? (int) $this->selectedAddressId : null,
+        );
+    } catch (ValidationException $e) {
+        $this->placingOrder = false;
+
+        Flux::toast(
+            text: $e->validator->errors()->first(),
+            heading: 'Unable to place order',
+            variant: 'danger',
+        );
+
+        return;
+    }
+
+    $this->redirect(route('orders.show', $order), navigate: true);
+};
+
 ?>
 
 <div class="mx-auto max-w-3xl px-6 py-20 lg:px-8">
@@ -241,12 +276,12 @@ $canCheckout = computed(function () {
         </div>
 
         <div class="flex flex-col items-center gap-2">
-            <flux:button variant="primary" :disabled="! $this->canCheckout" class="w-full">
+            <flux:button wire:click="placeOrder" variant="primary" :disabled="! $this->canCheckout || $placingOrder" class="w-full">
                 Place order
             </flux:button>
 
             <p class="text-center text-xs text-espresso-400 dark:text-cream-400">
-                Order placement is coming soon — this is a preview of your checkout total.
+                You'll pay in person — online payment isn't available yet.
             </p>
         </div>
     </div>
