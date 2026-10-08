@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use Livewire\Volt\Volt;
 
 require __DIR__.'/customer.php';
+require __DIR__.'/admin.php';
 
 Route::view('dashboard', 'dashboard')
     ->middleware(['auth', 'verified'])
