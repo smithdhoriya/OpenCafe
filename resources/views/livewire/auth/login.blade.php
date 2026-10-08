@@ -40,12 +40,15 @@ new #[Layout('components.layouts.auth')] class extends Component {
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        // Customers land on the OpenCafe storefront; every other role keeps
-        // the starter kit's generic dashboard. An intended URL (e.g. a
-        // protected page a guest tried to visit) always takes priority.
-        $default = Auth::user()->role === UserRole::Customer
-            ? route('home', absolute: false)
-            : route('dashboard', absolute: false);
+        // Customers land on the OpenCafe storefront, admins land on the
+        // OpenCafe admin dashboard, and every other role (staff) keeps the
+        // starter kit's generic dashboard. An intended URL (e.g. a protected
+        // page a guest tried to visit) always takes priority over all of this.
+        $default = match (Auth::user()->role) {
+            UserRole::Customer => route('home', absolute: false),
+            UserRole::Admin => route('admin.dashboard', absolute: false),
+            default => route('dashboard', absolute: false),
+        };
 
         $this->redirectIntended(default: $default, navigate: true);
     }

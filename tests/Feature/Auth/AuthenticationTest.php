@@ -70,7 +70,7 @@ test('a customer redirected to login from a protected page returns to that page 
         ->assertRedirect(route('checkout.index', absolute: false));
 });
 
-test('an admin account can still authenticate after the customer login fix', function () {
+test('an admin logging in through the OpenCafe website lands on the OpenCafe admin dashboard', function () {
     $admin = User::factory()->admin()->create([
         'password' => Hash::make('Admin1@123'),
     ]);
@@ -82,9 +82,24 @@ test('an admin account can still authenticate after the customer login fix', fun
 
     $response
         ->assertHasNoErrors()
-        ->assertRedirect(route('dashboard', absolute: false));
+        ->assertRedirect(route('admin.dashboard', absolute: false));
 
     $this->assertAuthenticatedAs($admin);
+});
+
+test('a staff account keeps the existing generic dashboard destination', function () {
+    $staff = User::factory()->staff()->create([
+        'password' => Hash::make('Staff1@123'),
+    ]);
+
+    LivewireVolt::test('auth.login')
+        ->set('email', $staff->email)
+        ->set('password', 'Staff1@123')
+        ->call('login')
+        ->assertHasNoErrors()
+        ->assertRedirect(route('dashboard', absolute: false));
+
+    $this->assertAuthenticatedAs($staff);
 });
 
 test('an admin redirected to login from a protected admin page still returns to that page after login', function () {
@@ -116,6 +131,41 @@ test('users can logout', function () {
     $user = User::factory()->create();
 
     $response = $this->actingAs($user)->post('/logout');
+
+    $this->assertGuest();
+    $response->assertRedirect('/');
+});
+
+test('a guest sees a login option on the OpenCafe customer-facing navbar', function () {
+    $this->get(route('home'))
+        ->assertOk()
+        ->assertSee('Log in')
+        ->assertDontSee('Log out');
+});
+
+test('an authenticated customer sees a logout option on the OpenCafe customer-facing navbar', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertOk()
+        ->assertSee('Log out')
+        ->assertDontSee('Log in');
+});
+
+test('the customer navbar no longer links an authenticated user to the starter kit dashboard', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->get(route('home'))
+        ->assertOk()
+        ->assertDontSee(route('dashboard', absolute: false), escape: false);
+});
+
+test('an admin can logout through the same shared logout mechanism as customers', function () {
+    $admin = User::factory()->admin()->create();
+
+    $response = $this->actingAs($admin)->post('/logout');
 
     $this->assertGuest();
     $response->assertRedirect('/');

@@ -113,4 +113,32 @@ class Cart extends Model
             'quantity' => $quantity,
         ]);
     }
+
+    /**
+     * Add a combo to the cart, merging into an existing combo line by
+     * incrementing its quantity instead of duplicating it.
+     */
+    public function addCombo(Combo $combo, int $quantity): CartItem
+    {
+        if (! $combo->isCurrentlyAvailable()) {
+            throw ValidationException::withMessages([
+                'combo' => 'This combo is currently unavailable.',
+            ]);
+        }
+
+        $quantity = max(1, $quantity);
+
+        $item = $this->items()->where('combo_id', $combo->id)->first();
+
+        if ($item) {
+            $item->increment('quantity', $quantity);
+
+            return $item;
+        }
+
+        return $this->items()->create([
+            'combo_id' => $combo->id,
+            'quantity' => $quantity,
+        ]);
+    }
 }

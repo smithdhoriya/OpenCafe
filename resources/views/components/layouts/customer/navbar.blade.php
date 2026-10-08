@@ -32,15 +32,24 @@
             <flux:separator vertical class="mx-1 h-6 max-sm:hidden" />
 
             @auth
-                <flux:button as="a" href="{{ route('orders.index') }}" wire:navigate variant="ghost" class="max-sm:hidden">
-                    Orders
-                </flux:button>
-                <flux:button as="a" href="{{ route('addresses.index') }}" wire:navigate variant="ghost" class="max-sm:hidden">
-                    Addresses
-                </flux:button>
-                <flux:button as="a" href="{{ route('dashboard') }}" wire:navigate variant="primary" class="max-sm:hidden">
-                    Dashboard
-                </flux:button>
+                <flux:dropdown position="bottom" align="end" class="max-sm:hidden">
+                    <flux:profile :name="auth()->user()->name" :initials="auth()->user()->initials()" icon-trailing="chevron-down" />
+
+                    <flux:menu>
+                        <flux:menu.item href="{{ route('account.profile') }}" icon="user" wire:navigate>Profile</flux:menu.item>
+                        <flux:menu.item href="{{ route('orders.index') }}" icon="shopping-bag" wire:navigate>Orders</flux:menu.item>
+                        <flux:menu.item href="{{ route('addresses.index') }}" icon="map-pin" wire:navigate>Addresses</flux:menu.item>
+
+                        <flux:menu.separator />
+
+                        <form method="POST" action="{{ route('logout') }}" class="w-full">
+                            @csrf
+                            <flux:menu.item as="button" type="submit" icon="arrow-right-start-on-rectangle" class="w-full">
+                                Log out
+                            </flux:menu.item>
+                        </form>
+                    </flux:menu>
+                </flux:dropdown>
             @else
                 <flux:button as="a" href="{{ route('login') }}" wire:navigate variant="ghost" class="max-sm:hidden">
                     Log in
@@ -76,15 +85,23 @@
 
             @auth
                 <div class="flex flex-col gap-2">
+                    <p class="px-1 text-sm text-espresso-500 dark:text-cream-300">
+                        Signed in as <span class="font-medium text-espresso-800 dark:text-cream-100">{{ auth()->user()->name }}</span>
+                    </p>
+
+                    <flux:button as="a" href="{{ route('account.profile') }}" wire:navigate variant="ghost" @click="open = false">
+                        Profile
+                    </flux:button>
                     <flux:button as="a" href="{{ route('orders.index') }}" wire:navigate variant="ghost" @click="open = false">
                         Orders
                     </flux:button>
                     <flux:button as="a" href="{{ route('addresses.index') }}" wire:navigate variant="ghost" @click="open = false">
                         Addresses
                     </flux:button>
-                    <flux:button as="a" href="{{ route('dashboard') }}" wire:navigate variant="primary" @click="open = false">
-                        Dashboard
-                    </flux:button>
+                    <form method="POST" action="{{ route('logout') }}">
+                        @csrf
+                        <flux:button type="submit" variant="primary" class="w-full">Log out</flux:button>
+                    </form>
                 </div>
             @else
                 <div class="flex flex-col gap-2">

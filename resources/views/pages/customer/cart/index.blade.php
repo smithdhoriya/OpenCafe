@@ -18,7 +18,7 @@ $cart = computed(function () {
 $items = computed(function () {
     return $this->cart
         ?->items()
-        ->with(['menuItem', 'variant'])
+        ->with(['menuItem', 'variant', 'combo'])
         ->orderBy('id')
         ->get()
         ?? collect();
@@ -108,13 +108,15 @@ $removeItem = function (int $cartItemId) {
             @foreach ($this->items as $item)
                 <div wire:key="cart-item-{{ $item->id }}" class="flex items-center gap-4 rounded-2xl border border-espresso-100 bg-white p-4 dark:border-espresso-700 dark:bg-espresso-800/60">
                     <div class="size-20 shrink-0 overflow-hidden rounded-xl bg-linear-to-br from-orange-100 via-orange-50 to-espresso-200 dark:from-espresso-700 dark:via-espresso-800 dark:to-espresso-900">
-                        <x-customer.menu-image :item="$item->menuItem" class="size-full object-cover" />
+                        <x-customer.menu-image :item="$item->isCombo() ? $item->combo : $item->menuItem" class="size-full object-cover" />
                     </div>
 
                     <div class="flex flex-1 flex-col gap-1">
-                        <flux:heading size="sm">{{ $item->menuItem->name }}</flux:heading>
+                        <flux:heading size="sm">{{ $item->isCombo() ? $item->combo->name : $item->menuItem->name }}</flux:heading>
 
-                        @if ($item->variant)
+                        @if ($item->isCombo())
+                            <span class="text-sm text-espresso-500 dark:text-cream-300">Combo</span>
+                        @elseif ($item->variant)
                             <span class="text-sm text-espresso-500 dark:text-cream-300">{{ $item->variant->name }}</span>
                         @endif
 

@@ -38,5 +38,9 @@
                 </li>
             @endforeach
         </ul>
+
+        <flux:button wire:click="addComboToCart({{ $combo->id }})" variant="primary" icon="shopping-bag" class="mt-auto w-full">
+            Add to cart
+        </flux:button>
     </div>
 </flux:card>

@@ -53,4 +53,70 @@ class Offer extends Model
     {
         return $this->hasMany(Order::class);
     }
+
+    /**
+     * Active right now: marked active, and within its optional validity
+     * window if one is set.
+     */
+    public function isCurrentlyActive(): bool
+    {
+        if (! $this->is_active) {
+            return false;
+        }
+
+        $now = now();
+
+        if ($this->starts_at && $now->lt($this->starts_at)) {
+            return false;
+        }
+
+        if ($this->ends_at && $now->gt($this->ends_at)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function meetsMinimumOrder(float $subtotal): bool
+    {
+        return $this->min_order_total === null || $subtotal >= (float) $this->min_order_total;
+    }
+
+    public function hasUsesRemaining(): bool
+    {
+        return $this->usage_limit === null || $this->times_used < $this->usage_limit;
+    }
+
+    /**
+     * Whether the given user still has personal uses left, counted from
+     * their own historical orders that actually used this offer.
+     */
+    public function hasUsesRemainingForUser(User $user): bool
+    {
+        if ($this->usage_limit_per_user === null) {
+            return true;
+        }
+
+        $usedByUser = $this->orders()->where('user_id', $user->id)->count();
+
+        return $usedByUser < $this->usage_limit_per_user;
+    }
+
+    /**
+     * Discount for a given subtotal, server-computed and capped so it can
+     * never exceed the subtotal (or the configured max, for percentage offers).
+     */
+    public function calculateDiscount(float $subtotal): float
+    {
+        $discount = match ($this->type) {
+            OfferType::Percentage => $subtotal * ((float) $this->value / 100),
+            OfferType::FixedAmount => (float) $this->value,
+        };
+
+        if ($this->max_discount_amount !== null) {
+            $discount = min($discount, (float) $this->max_discount_amount);
+        }
+
+        return round(min($discount, $subtotal), 2);
+    }
 }

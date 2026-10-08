@@ -5,8 +5,10 @@ use App\Enums\OrderType;
 use App\Models\CafeSetting;
 use App\Models\Cart;
 use App\Models\DeliveryRate;
+use App\Models\Offer;
 use App\Support\Geo;
 use Flux\Flux;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use function Livewire\Volt\{computed, layout, mount, on, state, title};
 
@@ -16,6 +18,7 @@ title('Checkout — OpenCafe');
 state([
     'fulfillmentType' => OrderType::Takeaway->value,
     'selectedAddressId' => null,
+    'offerCode' => '',
     'placingOrder' => false,
 ]);
 
@@ -44,7 +47,7 @@ $cart = computed(fn () => Cart::activeForUser(auth()->user()));
 $items = computed(function () {
     return $this->cart
         ?->items()
-        ->with(['menuItem', 'variant'])
+        ->with(['menuItem', 'variant', 'combo'])
         ->orderBy('id')
         ->get()
         ?? collect();
@@ -53,6 +56,36 @@ $items = computed(function () {
 $subtotal = computed(function () {
     return $this->items->sum(fn ($item) => $item->line_total);
 });
+
+// Preview only — the actual discount is always recalculated and frozen
+// server-side inside CreateOrderFromCart when the order is actually placed.
+$appliedOffer = computed(function () {
+    $code = trim($this->offerCode);
+
+    if ($code === '') {
+        return null;
+    }
+
+    $offer = Offer::query()->where('code', Str::upper($code))->first();
+
+    if (! $offer || ! $offer->isCurrentlyActive()) {
+        return null;
+    }
+
+    if (! $offer->meetsMinimumOrder($this->subtotal)) {
+        return null;
+    }
+
+    if (! $offer->hasUsesRemaining() || ! $offer->hasUsesRemainingForUser(auth()->user())) {
+        return null;
+    }
+
+    return $offer;
+});
+
+$offerCodeIsInvalid = computed(fn () => trim($this->offerCode) !== '' && $this->appliedOffer === null);
+
+$discount = computed(fn () => $this->appliedOffer?->calculateDiscount($this->subtotal) ?? 0.0);
 
 $addresses = computed(function () {
     return auth()->user()->customerAddresses()->orderByDesc('is_default')->orderByDesc('created_at')->get();
@@ -124,7 +157,7 @@ $deliveryCharge = computed(function () {
     return $this->deliveryAvailable ? (float) $this->deliveryRate->charge : 0.0;
 });
 
-$total = computed(fn () => $this->subtotal + $this->deliveryCharge);
+$total = computed(fn () => $this->subtotal - $this->discount + $this->deliveryCharge);
 
 $canCheckout = computed(function () {
     if ($this->fulfillmentType === OrderType::Takeaway->value) {
@@ -149,6 +182,7 @@ $placeOrder = function (CreateOrderFromCart $createOrderFromCart) {
             auth()->user(),
             OrderType::tryFrom($this->fulfillmentType) ?? OrderType::Takeaway,
             $this->selectedAddressId !== null ? (int) $this->selectedAddressId : null,
+            trim($this->offerCode) !== '' ? $this->offerCode : null,
         );
     } catch (ValidationException $e) {
         $this->placingOrder = false;
@@ -178,9 +212,13 @@ $placeOrder = function (CreateOrderFromCart $createOrderFromCart) {
                 @foreach ($this->items as $item)
                     <div wire:key="checkout-item-{{ $item->id }}" class="flex items-center justify-between gap-4 text-sm">
                         <div class="flex flex-col">
-                            <span class="font-medium text-espresso-800 dark:text-cream-100">{{ $item->quantity }} &times; {{ $item->menuItem->name }}</span>
+                            <span class="font-medium text-espresso-800 dark:text-cream-100">
+                                {{ $item->quantity }} &times; {{ $item->isCombo() ? $item->combo->name : $item->menuItem->name }}
+                            </span>
 
-                            @if ($item->variant)
+                            @if ($item->isCombo())
+                                <span class="text-espresso-500 dark:text-cream-300">Combo</span>
+                            @elseif ($item->variant)
                                 <span class="text-espresso-500 dark:text-cream-300">{{ $item->variant->name }}</span>
                             @endif
                         </div>
@@ -256,11 +294,34 @@ $placeOrder = function (CreateOrderFromCart $createOrderFromCart) {
             @endif
         </div>
 
+        <div class="rounded-2xl border border-espresso-100 bg-white p-5 dark:border-espresso-700 dark:bg-espresso-800/60">
+            <flux:heading size="sm" class="mb-4">Offer code</flux:heading>
+
+            <flux:input wire:model.live.debounce.400ms="offerCode" placeholder="Enter a promo code" :invalid="$this->offerCodeIsInvalid" />
+
+            @if ($this->appliedOffer)
+                <p class="mt-2 text-sm text-green-600 dark:text-green-400">
+                    "{{ $this->appliedOffer->name }}" applied — <x-customer.price :amount="$this->discount" /> off.
+                </p>
+            @elseif ($this->offerCodeIsInvalid)
+                <p class="mt-2 text-sm text-red-600 dark:text-red-400">
+                    This code isn't valid for your order right now.
+                </p>
+            @endif
+        </div>
+
         <div class="flex flex-col gap-2 rounded-2xl border border-espresso-100 bg-cream-100 p-5 dark:border-espresso-700 dark:bg-espresso-800/60">
             <div class="flex items-center justify-between text-sm text-espresso-600 dark:text-cream-300">
                 <span>Subtotal</span>
                 <x-customer.price :amount="$this->subtotal" />
             </div>
+
+            @if ($this->discount > 0)
+                <div class="flex items-center justify-between text-sm text-green-600 dark:text-green-400">
+                    <span>Discount</span>
+                    <span>&minus;<x-customer.price :amount="$this->discount" class="inline" /></span>
+                </div>
+            @endif
 
             <div class="flex items-center justify-between text-sm text-espresso-600 dark:text-cream-300">
                 <span>Delivery charge</span>

@@ -20,6 +20,7 @@ class CartItem extends Model
         'cart_id',
         'menu_item_id',
         'menu_item_variant_id',
+        'combo_id',
         'quantity',
         'special_instructions',
     ];
@@ -46,14 +47,26 @@ class CartItem extends Model
         return $this->belongsTo(MenuItemVariant::class, 'menu_item_variant_id');
     }
 
+    public function combo(): BelongsTo
+    {
+        return $this->belongsTo(Combo::class);
+    }
+
+    public function isCombo(): bool
+    {
+        return $this->combo_id !== null;
+    }
+
     /**
-     * Price for a single unit: the menu item's base price plus the
-     * selected variant's price modifier, if any.
+     * Price for a single unit: either the combo's bundle price, or the menu
+     * item's base price plus the selected variant's price modifier, if any.
      */
     protected function unitPrice(): Attribute
     {
         return Attribute::make(
-            get: fn (): float => (float) $this->menuItem->base_price + (float) ($this->variant?->price_modifier ?? 0),
+            get: fn (): float => $this->isCombo()
+                ? (float) $this->combo->price
+                : (float) $this->menuItem->base_price + (float) ($this->variant?->price_modifier ?? 0),
         );
     }
 

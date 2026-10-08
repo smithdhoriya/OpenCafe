@@ -10,6 +10,7 @@ use App\Models\CafeSetting;
 use App\Models\Cart;
 use App\Models\CustomerAddress;
 use App\Models\DeliveryRate;
+use App\Models\Offer;
 use App\Models\Order;
 use App\Models\OrderDelivery;
 use App\Models\OrderItem;
@@ -27,10 +28,11 @@ class CreateOrderFromCart
      *
      * @param  OrderType  $fulfillmentType  Already resolved/validated by the caller.
      * @param  int|null  $selectedAddressId  Only meaningful when $fulfillmentType is Delivery.
+     * @param  string|null  $offerCode  Untrusted input: only a code, never a discount amount.
      */
-    public function handle(User $user, OrderType $fulfillmentType, ?int $selectedAddressId): Order
+    public function handle(User $user, OrderType $fulfillmentType, ?int $selectedAddressId, ?string $offerCode = null): Order
     {
-        return DB::transaction(function () use ($user, $fulfillmentType, $selectedAddressId) {
+        return DB::transaction(function () use ($user, $fulfillmentType, $selectedAddressId, $offerCode) {
             $cart = Cart::query()
                 ->where('user_id', $user->id)
                 ->where('status', CartStatus::Active)
@@ -42,13 +44,26 @@ class CreateOrderFromCart
                 throw ValidationException::withMessages(['cart' => 'Your cart is empty.']);
             }
 
-            $items = $cart->items()->with(['menuItem', 'variant'])->orderBy('id')->get();
+            $items = $cart->items()
+                ->with(['menuItem', 'variant', 'combo.comboItems.menuItem', 'combo.comboItems.variant'])
+                ->orderBy('id')
+                ->get();
 
             if ($items->isEmpty()) {
                 throw ValidationException::withMessages(['cart' => 'Your cart is empty.']);
             }
 
             foreach ($items as $item) {
+                if ($item->isCombo()) {
+                    if (! $item->combo || ! $item->combo->isCurrentlyAvailable()) {
+                        throw ValidationException::withMessages([
+                            'cart' => ($item->combo->name ?? 'A combo').' in your cart is no longer available.',
+                        ]);
+                    }
+
+                    continue;
+                }
+
                 if (! $item->menuItem || ! $item->menuItem->is_available) {
                     throw ValidationException::withMessages([
                         'cart' => ($item->menuItem->name ?? 'An item').' in your cart is no longer available.',
@@ -64,6 +79,10 @@ class CreateOrderFromCart
 
             $subtotal = (float) $items->sum(fn ($item) => $item->line_total);
 
+            [$discountTotal, $offer] = $offerCode !== null && trim($offerCode) !== ''
+                ? $this->resolveOffer($user, $offerCode, $subtotal)
+                : [0.0, null];
+
             [$deliveryCharge, $address, $distanceKm, $deliveryRate] = $fulfillmentType === OrderType::Delivery
                 ? $this->resolveDelivery($user, $subtotal, $selectedAddressId)
                 : [0.0, null, null, null];
@@ -76,14 +95,36 @@ class CreateOrderFromCart
                 'payment_status' => PaymentStatus::Unpaid,
                 'currency' => CafeSetting::get('currency', 'INR'),
                 'subtotal' => $subtotal,
-                'discount_total' => 0,
+                'discount_total' => $discountTotal,
                 'tax_total' => 0,
                 'delivery_charge' => $deliveryCharge,
-                'total' => $subtotal + $deliveryCharge,
+                'total' => $subtotal - $discountTotal + $deliveryCharge,
+                'offer_id' => $offer?->id,
+                'offer_code' => $offer?->code,
                 'placed_at' => now(),
             ]);
 
             foreach ($items as $item) {
+                if ($item->isCombo()) {
+                    OrderItem::create([
+                        'order_id' => $order->id,
+                        'combo_id' => $item->combo_id,
+                        'item_name' => $item->combo->name,
+                        // Frozen composition — independent of later combo/combo_items edits.
+                        'combo_components_snapshot' => $item->combo->comboItems->map(fn ($comboItem) => [
+                            'menu_item_name' => $comboItem->menuItem?->name,
+                            'variant_name' => $comboItem->variant?->name,
+                            'quantity' => $comboItem->quantity,
+                        ])->all(),
+                        'unit_price' => $item->unit_price,
+                        'quantity' => $item->quantity,
+                        'line_total' => $item->line_total,
+                        'special_instructions' => $item->special_instructions,
+                    ]);
+
+                    continue;
+                }
+
                 OrderItem::create([
                     'order_id' => $order->id,
                     'menu_item_id' => $item->menu_item_id,
@@ -117,10 +158,39 @@ class CreateOrderFromCart
                 ]);
             }
 
+            if ($offer) {
+                $offer->increment('times_used');
+            }
+
             $cart->update(['status' => CartStatus::Converted]);
 
             return $order;
         });
+    }
+
+    /**
+     * Resolve and validate an offer code entirely from server-side state —
+     * the caller only ever supplies the code string, never a discount value.
+     *
+     * @return array{0: float, 1: Offer}
+     */
+    private function resolveOffer(User $user, string $offerCode, float $subtotal): array
+    {
+        $offer = Offer::query()->where('code', Str::upper(trim($offerCode)))->first();
+
+        if (! $offer || ! $offer->isCurrentlyActive()) {
+            throw ValidationException::withMessages(['offer' => 'This offer code is not valid.']);
+        }
+
+        if (! $offer->meetsMinimumOrder($subtotal)) {
+            throw ValidationException::withMessages(['offer' => 'Your order does not meet the minimum required for this offer.']);
+        }
+
+        if (! $offer->hasUsesRemaining() || ! $offer->hasUsesRemainingForUser($user)) {
+            throw ValidationException::withMessages(['offer' => 'This offer has reached its usage limit.']);
+        }
+
+        return [$offer->calculateDiscount($subtotal), $offer];
     }
 
     /**

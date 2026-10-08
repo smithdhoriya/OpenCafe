@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -58,5 +59,39 @@ class Combo extends Model
     public function orderItems(): HasMany
     {
         return $this->hasMany(OrderItem::class);
+    }
+
+    /**
+     * Public URL for the real photo, or null until one is uploaded — views
+     * fall back to a temporary placeholder visual when this is null.
+     */
+    protected function imageUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn (): ?string => $this->image_path ? asset($this->image_path) : null,
+        );
+    }
+
+    /**
+     * Available right now: marked available, and within its optional
+     * scheduled window if one is set.
+     */
+    public function isCurrentlyAvailable(): bool
+    {
+        if (! $this->is_available) {
+            return false;
+        }
+
+        $now = now();
+
+        if ($this->starts_at && $now->lt($this->starts_at)) {
+            return false;
+        }
+
+        if ($this->ends_at && $now->gt($this->ends_at)) {
+            return false;
+        }
+
+        return true;
     }
 }
