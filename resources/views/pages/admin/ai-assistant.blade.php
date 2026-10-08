@@ -2,9 +2,13 @@
 
 use function Livewire\Volt\{layout, title};
 
-layout('components.layouts.admin', ['heading' => 'AI Assistant']);
+layout('components.layouts.admin');
 title('AI Assistant — Admin — OpenCafe');
 
 ?>
 
-<x-admin.coming-soon label="AI assistant" />
+<div>
+    <x-admin.page-header heading="AI Assistant" />
+
+    <x-admin.coming-soon label="AI assistant" />
+</div>

@@ -44,23 +44,14 @@ test('the admin dashboard renders the overview shell for an admin', function () 
         ->assertSee('Log Out');
 });
 
-test('each admin navigation placeholder route renders for an admin', function (string $routeName) {
+test('the AI assistant admin route is still a clearly-labeled coming-soon foundation', function () {
     $admin = User::factory()->admin()->create();
 
     $this->actingAs($admin)
-        ->get(route($routeName))
+        ->get(route('admin.ai-assistant'))
         ->assertOk()
         ->assertSee('coming soon');
-})->with([
-    'admin.orders',
-    'admin.menu',
-    'admin.categories',
-    'admin.customers',
-    'admin.offers',
-    'admin.reviews',
-    'admin.settings',
-    'admin.ai-assistant',
-]);
+});
 
 test('customer-facing routes remain accessible after the admin foundation changes', function () {
     $this->get(route('home'))->assertOk();

@@ -7,7 +7,7 @@ use App\Models\Order;
 use App\Models\User;
 use function Livewire\Volt\{computed, layout, title};
 
-layout('components.layouts.admin', ['heading' => 'Dashboard', 'subheading' => 'An overview of OpenCafe — more detail lands in later steps.']);
+layout('components.layouts.admin');
 title('Admin Dashboard — OpenCafe');
 
 $totalOrders = computed(fn () => Order::query()->count());
@@ -21,6 +21,8 @@ $customers = computed(fn () => User::query()->where('role', UserRole::Customer)-
 ?>
 
 <div>
+    <x-admin.page-header heading="Dashboard" subheading="An overview of OpenCafe — more detail lands in later steps." />
+
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         @foreach ([
             ['label' => 'Total Orders', 'value' => $this->totalOrders],

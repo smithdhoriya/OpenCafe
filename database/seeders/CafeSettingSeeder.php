@@ -100,7 +100,7 @@ class CafeSettingSeeder extends Seeder
             ],
             [
                 'key' => 'cafe_latitude',
-                'value' => '12.9716000',
+                'value' => '20.2774598',
                 'type' => SettingType::Decimal,
                 'group' => 'delivery',
                 'label' => 'Cafe Latitude',
@@ -108,7 +108,7 @@ class CafeSettingSeeder extends Seeder
             ],
             [
                 'key' => 'cafe_longitude',
-                'value' => '77.5946000',
+                'value' => '72.8837796',
                 'type' => SettingType::Decimal,
                 'group' => 'delivery',
                 'label' => 'Cafe Longitude',

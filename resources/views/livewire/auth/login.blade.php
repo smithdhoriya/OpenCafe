@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\UserRole;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
@@ -39,7 +40,14 @@ new #[Layout('components.layouts.auth')] class extends Component {
         RateLimiter::clear($this->throttleKey());
         Session::regenerate();
 
-        $this->redirectIntended(default: route('dashboard', absolute: false), navigate: true);
+        // Customers land on the OpenCafe storefront; every other role keeps
+        // the starter kit's generic dashboard. An intended URL (e.g. a
+        // protected page a guest tried to visit) always takes priority.
+        $default = Auth::user()->role === UserRole::Customer
+            ? route('home', absolute: false)
+            : route('dashboard', absolute: false);
+
+        $this->redirectIntended(default: $default, navigate: true);
     }
 
     /**
