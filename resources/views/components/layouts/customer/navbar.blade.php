@@ -32,6 +32,9 @@
             <flux:separator vertical class="mx-1 h-6 max-sm:hidden" />
 
             @auth
+                <flux:button as="a" href="{{ route('orders.index') }}" wire:navigate variant="ghost" class="max-sm:hidden">
+                    Orders
+                </flux:button>
                 <flux:button as="a" href="{{ route('addresses.index') }}" wire:navigate variant="ghost" class="max-sm:hidden">
                     Addresses
                 </flux:button>
@@ -73,6 +76,9 @@
 
             @auth
                 <div class="flex flex-col gap-2">
+                    <flux:button as="a" href="{{ route('orders.index') }}" wire:navigate variant="ghost" @click="open = false">
+                        Orders
+                    </flux:button>
                     <flux:button as="a" href="{{ route('addresses.index') }}" wire:navigate variant="ghost" @click="open = false">
                         Addresses
                     </flux:button>
