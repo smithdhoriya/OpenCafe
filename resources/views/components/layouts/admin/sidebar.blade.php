@@ -16,20 +16,24 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white dark:bg-zinc-800">
+    <body class="min-h-screen bg-white text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
         <flux:sidebar sticky stashable class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
-            <a href="{{ route('admin.dashboard') }}" class="mr-5 flex items-center gap-2" wire:navigate>
-                <div class="flex aspect-square size-8 items-center justify-center rounded-md bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900">
-                    <flux:icon.home variant="micro" />
-                </div>
+            <div class="mr-5 flex items-center gap-2">
+                <a href="{{ route('admin.dashboard') }}" class="flex flex-1 items-center gap-2" wire:navigate>
+                    <div class="flex aspect-square size-8 items-center justify-center rounded-md bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900">
+                        <flux:icon.home variant="micro" />
+                    </div>
 
-                <div class="grid flex-1 text-left text-sm">
-                    <span class="truncate leading-none font-semibold">OpenCafe</span>
-                    <span class="truncate text-xs text-zinc-500 dark:text-zinc-400">Admin</span>
-                </div>
-            </a>
+                    <div class="grid flex-1 text-left text-sm">
+                        <span class="truncate leading-none font-semibold">OpenCafe</span>
+                        <span class="truncate text-xs text-zinc-500 dark:text-zinc-400">Admin</span>
+                    </div>
+                </a>
+
+                <x-admin.theme-toggle />
+            </div>
 
             <flux:navlist variant="outline">
                 <flux:navlist.group heading="Management" class="grid">
@@ -91,6 +95,8 @@
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <flux:spacer />
+
+            <x-admin.theme-toggle />
 
             <flux:dropdown position="top" align="end">
                 <flux:profile

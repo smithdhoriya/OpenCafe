@@ -1,7 +1,11 @@
 <?php
 
+use App\Actions\Orders\UpdateOrderStatus;
+use App\Enums\OrderStatus;
 use App\Models\Order;
-use function Livewire\Volt\{layout, mount, state, title};
+use Flux\Flux;
+use Illuminate\Validation\ValidationException;
+use function Livewire\Volt\{computed, layout, mount, state, title};
 
 layout('components.layouts.admin');
 
@@ -24,6 +28,32 @@ mount(function (int $orderId) {
     title("Order {$order->order_number} — Admin — OpenCafe");
 });
 
+$availableStatuses = computed(
+    fn () => $this->order->status->allowedTransitions($this->order->type, $this->order->payment_status)
+);
+
+$updateStatus = function (string $status, UpdateOrderStatus $action) {
+    try {
+        $action->handle(auth()->user(), $this->order->id, OrderStatus::from($status));
+    } catch (ValidationException $e) {
+        Flux::toast(
+            text: $e->validator->errors()->first(),
+            heading: 'Status update failed',
+            variant: 'danger',
+        );
+
+        return;
+    }
+
+    $this->order->refresh();
+
+    Flux::toast(
+        text: 'Order '.$this->order->order_number.' is now '.ucfirst(str_replace('_', ' ', $this->order->status->value)).'.',
+        heading: 'Status updated',
+        variant: 'success',
+    );
+};
+
 ?>
 
 <div>
@@ -34,7 +64,7 @@ mount(function (int $orderId) {
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                     <flux:subheading>Status</flux:subheading>
-                    <flux:badge color="orange" size="sm" class="mt-1">{{ ucfirst(str_replace('_', ' ', $order->status->value)) }}</flux:badge>
+                    <x-admin.status-badge :status="$order->status" class="mt-1" />
                 </div>
 
                 <div>
@@ -51,6 +81,41 @@ mount(function (int $orderId) {
                     <flux:subheading>Currency</flux:subheading>
                     <p class="mt-1 font-medium">{{ $order->currency }}</p>
                 </div>
+            </div>
+
+            <div class="mt-5 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+                <flux:subheading class="mb-2">Update status</flux:subheading>
+
+                @if ($this->availableStatuses === [])
+                    <p class="text-sm text-zinc-500 dark:text-zinc-400">No further status changes are available for this order.</p>
+                @else
+                    <div class="flex flex-wrap items-center gap-2">
+                        @foreach ($this->availableStatuses as $next)
+                            @php
+                                $isSidePath = in_array($next, [OrderStatus::Cancelled, OrderStatus::Refunded], true);
+                                $nextLabel = ucfirst(str_replace('_', ' ', $next->value));
+                            @endphp
+
+                            <flux:button
+                                wire:click="updateStatus('{{ $next->value }}')"
+                                wire:loading.attr="disabled"
+                                wire:target="updateStatus"
+                                wire:confirm="Mark order {{ $order->order_number }} as {{ $nextLabel }}? This cannot be undone."
+                                variant="{{ $isSidePath ? 'danger' : 'primary' }}"
+                                size="sm"
+                                wire:key="status-action-{{ $next->value }}"
+                            >
+                                Mark as {{ $nextLabel }}
+                            </flux:button>
+                        @endforeach
+                    </div>
+                @endif
+
+                @if ($order->status === OrderStatus::Refunded)
+                    <p class="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
+                        This only records the order as refunded for tracking. It does not process any payment or move money — handle the actual refund through your payment provider separately.
+                    </p>
+                @endif
             </div>
         </div>
 

@@ -38,7 +38,7 @@ test('the admin dashboard renders the overview shell for an admin', function () 
         ->get(route('admin.dashboard'))
         ->assertOk()
         ->assertSee('Total Orders')
-        ->assertSee('Pending Orders')
+        ->assertSee('Active Orders')
         ->assertSee('Menu Items')
         ->assertSee('Customers')
         ->assertSee('Log Out');
