@@ -49,4 +49,22 @@ class CafeSetting extends Model
             SettingType::String => $setting->value,
         };
     }
+
+    /**
+     * Display symbol for the configured currency setting. Shared by any
+     * code that formats money for display (AI assistant context, etc.)
+     * so the symbol-per-currency-code mapping lives in exactly one place.
+     */
+    public static function currencySymbol(): string
+    {
+        $code = static::get('currency', 'INR');
+
+        return match (strtoupper((string) $code)) {
+            'INR' => '₹',
+            'USD' => '$',
+            'EUR' => '€',
+            'GBP' => '£',
+            default => $code.' ',
+        };
+    }
 }

@@ -44,13 +44,35 @@ test('the admin dashboard renders the overview shell for an admin', function () 
         ->assertSee('Log Out');
 });
 
-test('the AI assistant admin route is still a clearly-labeled coming-soon foundation', function () {
+test('the AI assistant admin route renders the Admin AI chat interface for an admin', function () {
     $admin = User::factory()->admin()->create();
 
     $this->actingAs($admin)
         ->get(route('admin.ai-assistant'))
         ->assertOk()
-        ->assertSee('coming soon');
+        ->assertSee('Admin AI Assistant')
+        ->assertSee('Read-only');
+});
+
+test('a customer cannot access the Admin AI assistant route', function () {
+    $customer = User::factory()->create();
+
+    $this->actingAs($customer)
+        ->get(route('admin.ai-assistant'))
+        ->assertForbidden();
+});
+
+test('a staff user cannot access the Admin AI assistant route', function () {
+    $staff = User::factory()->staff()->create();
+
+    $this->actingAs($staff)
+        ->get(route('admin.ai-assistant'))
+        ->assertForbidden();
+});
+
+test('a guest is redirected to login from the Admin AI assistant route', function () {
+    $this->get(route('admin.ai-assistant'))
+        ->assertRedirect(route('login'));
 });
 
 test('customer-facing routes remain accessible after the admin foundation changes', function () {
