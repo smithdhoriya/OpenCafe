@@ -1,10 +1,13 @@
 <?php
 
+use App\Services\Ai\OpenCafeAssistant;
+use Illuminate\Support\Facades\RateLimiter;
 use function Livewire\Volt\{state};
 
 state([
     'open' => false,
     'draft' => '',
+    'locale' => 'en',
     'messages' => fn () => [
         ['from' => 'assistant', 'text' => "Hi! I'm the OpenCafe assistant. Ask me about the menu, hours, or today's offers."],
     ],
@@ -14,6 +17,12 @@ $toggle = function () {
     $this->open = ! $this->open;
 };
 
+$setLocale = function (string $locale) {
+    if (in_array($locale, ['en', 'hi', 'gu'], true)) {
+        $this->locale = $locale;
+    }
+};
+
 $send = function () {
     $text = trim($this->draft);
 
@@ -21,9 +30,38 @@ $send = function () {
         return;
     }
 
-    $this->messages[] = ['from' => 'customer', 'text' => $text];
-    $this->messages[] = ['from' => 'assistant', 'text' => 'Thanks for reaching out! This assistant is just a preview for now — a real one is on the way.'];
     $this->draft = '';
+
+    $maxLength = 500;
+
+    if (mb_strlen($text) > $maxLength) {
+        $this->messages[] = ['from' => 'customer', 'text' => $text];
+        $this->messages[] = ['from' => 'assistant', 'text' => "Please keep your message under {$maxLength} characters so I can help you better."];
+
+        return;
+    }
+
+    $rateLimitKey = 'ai-assistant:'.(auth()->id() ?? request()->ip());
+
+    if (RateLimiter::tooManyAttempts($rateLimitKey, 10)) {
+        $this->messages[] = ['from' => 'customer', 'text' => $text];
+        $this->messages[] = ['from' => 'assistant', 'text' => "You're sending messages a little too fast — please wait a moment and try again."];
+
+        return;
+    }
+
+    RateLimiter::hit($rateLimitKey, 60);
+
+    $this->messages[] = ['from' => 'customer', 'text' => $text];
+
+    try {
+        $reply = app(OpenCafeAssistant::class)->reply($this->messages, $this->locale);
+    } catch (\Throwable $e) {
+        report($e);
+        $reply = "Sorry, I'm having trouble responding right now. Please try again in a moment.";
+    }
+
+    $this->messages[] = ['from' => 'assistant', 'text' => $reply];
 };
 
 $ask = function (string $text) {
@@ -43,13 +81,33 @@ $ask = function (string $text) {
                     </div>
                     <div class="leading-tight">
                         <p class="text-sm font-semibold text-cream-50">OpenCafe Assistant</p>
-                        <p class="text-xs text-cream-300">Preview — not live yet</p>
+                        <p class="text-xs text-cream-300">Ask about the menu, combos &amp; offers</p>
                     </div>
                 </div>
 
-                <button type="button" wire:click="toggle" class="text-cream-300 transition hover:text-cream-50" aria-label="Close assistant">
-                    <flux:icon.x-mark variant="micro" />
-                </button>
+                <div class="flex items-center gap-1.5">
+                    <div class="flex items-center overflow-hidden rounded-full border border-cream-50/20 text-[0.65rem] font-medium">
+                        @foreach (['en' => 'EN', 'hi' => 'हि', 'gu' => 'ગુ'] as $code => $label)
+                            <button
+                                type="button"
+                                wire:click="setLocale('{{ $code }}')"
+                                @class([
+                                    'px-2 py-1 transition',
+                                    'bg-cream-50 text-espresso-900' => $locale === $code,
+                                    'text-cream-200 hover:bg-cream-50/10' => $locale !== $code,
+                                ])
+                                aria-label="Reply in {{ $label }}"
+                                aria-pressed="{{ $locale === $code ? 'true' : 'false' }}"
+                            >
+                                {{ $label }}
+                            </button>
+                        @endforeach
+                    </div>
+
+                    <button type="button" wire:click="toggle" class="text-cream-300 transition hover:text-cream-50" aria-label="Close assistant">
+                        <flux:icon.x-mark variant="micro" />
+                    </button>
+                </div>
             </div>
 
             <div class="flex-1 space-y-3 overflow-y-auto bg-cream-50 px-4 py-4 dark:bg-espresso-900/40">
@@ -79,8 +137,8 @@ $ask = function (string $text) {
             @endif
 
             <form wire:submit="send" class="flex items-center gap-2 border-t border-espresso-100 p-3 dark:border-espresso-700">
-                <flux:input wire:model="draft" placeholder="Ask something…" class="flex-1" />
-                <flux:button type="submit" icon="paper-airplane" variant="primary" square aria-label="Send message" />
+                <flux:input wire:model="draft" wire:loading.attr="disabled" wire:target="send" placeholder="Ask something…" class="flex-1" />
+                <flux:button type="submit" icon="paper-airplane" variant="primary" square aria-label="Send message" wire:loading.attr="disabled" wire:target="send" />
             </form>
         </flux:card>
     @endif
