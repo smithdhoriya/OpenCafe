@@ -217,13 +217,13 @@ $delete = function (int $menuItemId) {
     </div>
 
     @if ($this->items->isEmpty())
-        <div class="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-16 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+        <div class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/40 px-6 py-16 text-center text-sm text-zinc-500 dark:border-emerald-900/40 dark:bg-emerald-950/10 dark:text-zinc-400">
             No menu items match your filters.
         </div>
     @else
-        <div class="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-zinc-700">
-            <table class="w-full min-w-[760px] divide-y divide-zinc-200 text-left text-sm dark:divide-zinc-700">
-                <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
+        <div class="overflow-x-auto rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+            <table class="w-full min-w-[760px] divide-y divide-emerald-100 text-left text-sm dark:divide-emerald-900/40">
+                <thead class="bg-emerald-50/60 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
                     <tr>
                         <th class="px-4 py-3 font-medium">Item</th>
                         <th class="px-4 py-3 font-medium">Category</th>
@@ -233,9 +233,9 @@ $delete = function (int $menuItemId) {
                     </tr>
                 </thead>
 
-                <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900/40">
+                <tbody class="divide-y divide-emerald-100 bg-white dark:divide-emerald-900/40 dark:bg-zinc-900">
                     @foreach ($this->items as $item)
-                        <tr wire:key="admin-menu-item-{{ $item->id }}">
+                        <tr wire:key="admin-menu-item-{{ $item->id }}" class="transition hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10">
                             <td class="px-4 py-3">
                                 <div class="flex items-center gap-3">
                                     <div class="size-10 shrink-0 overflow-hidden rounded-lg bg-zinc-100 dark:bg-zinc-800">

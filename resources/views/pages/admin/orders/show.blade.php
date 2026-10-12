@@ -60,7 +60,7 @@ $updateStatus = function (string $status, UpdateOrderStatus $action) {
     <x-admin.page-header heading="Order {{ $order->order_number }}" />
 
     <div class="flex flex-col gap-6">
-        <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+        <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <div>
                     <flux:subheading>Status</flux:subheading>
@@ -83,7 +83,7 @@ $updateStatus = function (string $status, UpdateOrderStatus $action) {
                 </div>
             </div>
 
-            <div class="mt-5 border-t border-zinc-200 pt-4 dark:border-zinc-700">
+            <div class="mt-5 border-t border-emerald-100 pt-4 dark:border-emerald-900/40">
                 <flux:subheading class="mb-2">Update status</flux:subheading>
 
                 @if ($this->availableStatuses === [])
@@ -119,18 +119,18 @@ $updateStatus = function (string $status, UpdateOrderStatus $action) {
             </div>
         </div>
 
-        <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+        <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
             <flux:subheading class="mb-3">Customer</flux:subheading>
 
             <p class="font-medium">{{ $order->user?->name ?? $order->guest_name ?? 'Guest' }}</p>
             <p class="text-sm text-zinc-500 dark:text-zinc-400">{{ $order->user?->email ?? $order->guest_email ?? 'No email on file' }}</p>
         </div>
 
-        <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+        <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
             <flux:subheading class="mb-4">Items</flux:subheading>
 
             <div class="overflow-x-auto">
-                <table class="w-full min-w-[520px] divide-y divide-zinc-200 text-left text-sm dark:divide-zinc-700">
+                <table class="w-full min-w-[520px] divide-y divide-emerald-100 text-left text-sm dark:divide-emerald-900/40">
                     <thead class="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                         <tr>
                             <th class="py-2 font-medium">Item</th>
@@ -140,7 +140,7 @@ $updateStatus = function (string $status, UpdateOrderStatus $action) {
                         </tr>
                     </thead>
 
-                    <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                    <tbody class="divide-y divide-emerald-100 dark:divide-emerald-900/40">
                         @foreach ($order->items as $item)
                             <tr wire:key="admin-order-item-{{ $item->id }}">
                                 <td class="py-2">
@@ -163,7 +163,7 @@ $updateStatus = function (string $status, UpdateOrderStatus $action) {
         </div>
 
         @if ($order->delivery)
-            <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+            <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
                 <flux:subheading class="mb-3">Delivery snapshot</flux:subheading>
 
                 <p class="text-sm">
@@ -183,7 +183,7 @@ $updateStatus = function (string $status, UpdateOrderStatus $action) {
             </div>
         @endif
 
-        <div class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-zinc-50 p-5 dark:border-zinc-700 dark:bg-zinc-900/40">
+        <div class="flex flex-col gap-2 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5 dark:border-emerald-900/40 dark:bg-emerald-950/10">
             <div class="flex items-center justify-between text-sm text-zinc-600 dark:text-zinc-300">
                 <span>Subtotal</span>
                 <x-customer.price :amount="$order->subtotal" />

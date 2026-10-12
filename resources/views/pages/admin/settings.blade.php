@@ -137,7 +137,7 @@ $saveRate = function () {
 
     <form wire:submit="saveSettings" class="flex flex-col gap-6">
         @foreach ($this->settingsByGroup as $group => $settings)
-            <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+            <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
                 <flux:subheading class="mb-4">{{ ucfirst($group) }}</flux:subheading>
 
                 <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -163,11 +163,11 @@ $saveRate = function () {
         </div>
     </form>
 
-    <div class="mt-8 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+    <div class="mt-8 rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
         <flux:subheading class="mb-4">Delivery rate tiers</flux:subheading>
 
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[520px] divide-y divide-zinc-200 text-left text-sm dark:divide-zinc-700">
+            <table class="w-full min-w-[520px] divide-y divide-emerald-100 text-left text-sm dark:divide-emerald-900/40">
                 <thead class="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                     <tr>
                         <th class="py-2 font-medium">Distance</th>
@@ -177,7 +177,7 @@ $saveRate = function () {
                     </tr>
                 </thead>
 
-                <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                <tbody class="divide-y divide-emerald-100 dark:divide-emerald-900/40">
                     @foreach ($this->deliveryRates as $rate)
                         <tr wire:key="admin-delivery-rate-{{ $rate->id }}">
                             <td class="py-2">

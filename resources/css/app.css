@@ -70,6 +70,25 @@
         --color-accent-content: var(--color-orange-400);
         --color-accent-foreground: var(--color-white);
     }
+
+    /* Scopes the "Premium Emerald & Cream" accent to the whole Admin Panel —
+       applied once on <body> in the shared admin layout, so every admin page
+       (dashboard, orders, menu, customers, offers, reviews, settings, AI
+       assistant, and any create/edit/detail subpages) inherits it automatically,
+       including every Flux component that already reads --color-accent
+       (primary buttons, active nav items, focus rings, checkboxes/radios).
+       Customer-facing pages are untouched — they keep .theme-customer. */
+    .theme-admin {
+        --color-accent: var(--color-emerald-600);
+        --color-accent-content: var(--color-emerald-700);
+        --color-accent-foreground: var(--color-white);
+    }
+
+    .dark .theme-admin {
+        --color-accent: var(--color-emerald-500);
+        --color-accent-content: var(--color-emerald-400);
+        --color-accent-foreground: var(--color-white);
+    }
 }
 
 @layer base {

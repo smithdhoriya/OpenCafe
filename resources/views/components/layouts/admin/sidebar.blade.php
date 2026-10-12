@@ -16,13 +16,13 @@
     <head>
         @include('partials.head')
     </head>
-    <body class="min-h-screen bg-white text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100">
-        <flux:sidebar sticky stashable class="border-r border-zinc-200 bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900">
+    <body class="theme-admin min-h-screen bg-amber-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100">
+        <flux:sidebar sticky stashable class="border-r border-emerald-100 bg-emerald-50/40 dark:border-emerald-900/40 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="x-mark" />
 
             <div class="mr-5 flex items-center gap-2">
                 <a href="{{ route('admin.dashboard') }}" class="flex flex-1 items-center gap-2" wire:navigate>
-                    <div class="flex aspect-square size-8 items-center justify-center rounded-md bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900">
+                    <div class="flex aspect-square size-8 items-center justify-center rounded-md bg-emerald-600 text-white dark:bg-emerald-500">
                         <flux:icon.home variant="micro" />
                     </div>
 
@@ -91,7 +91,7 @@
         </flux:sidebar>
 
         <!-- Mobile User Menu -->
-        <flux:header class="lg:hidden">
+        <flux:header class="border-emerald-100 bg-emerald-50/40 lg:hidden dark:border-emerald-900/40 dark:bg-zinc-900">
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <flux:spacer />

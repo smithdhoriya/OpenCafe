@@ -97,7 +97,7 @@ $advanceStatus = function (int $orderId, UpdateOrderStatus $action) {
     </div>
 
     @if ($this->orders->isEmpty())
-        <div class="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-16 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+        <div class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/40 px-6 py-16 text-center text-sm text-zinc-500 dark:border-emerald-900/40 dark:bg-emerald-950/10 dark:text-zinc-400">
             No orders match your filters.
         </div>
     @else
@@ -108,7 +108,7 @@ $advanceStatus = function (int $orderId, UpdateOrderStatus $action) {
             @foreach ($this->orders as $order)
                 @php $next = $order->status->nextForwardStatus($order->type); @endphp
 
-                <div wire:key="admin-order-card-{{ $order->id }}" class="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900/60">
+                <div wire:key="admin-order-card-{{ $order->id }}" class="rounded-2xl border border-emerald-100 bg-white p-4 dark:border-emerald-900/40 dark:bg-zinc-900">
                     <div class="flex items-start justify-between gap-3">
                         <div>
                             <p class="font-medium">{{ $order->order_number }}</p>
@@ -124,7 +124,7 @@ $advanceStatus = function (int $orderId, UpdateOrderStatus $action) {
                         <x-customer.price :amount="$order->total" class="font-semibold text-zinc-900 dark:text-zinc-100" />
                     </div>
 
-                    <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-zinc-200 pt-3 dark:border-zinc-700">
+                    <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-emerald-100 pt-3 dark:border-emerald-900/40">
                         @if ($next)
                             <flux:button
                                 wire:click="advanceStatus({{ $order->id }})"
@@ -151,9 +151,9 @@ $advanceStatus = function (int $orderId, UpdateOrderStatus $action) {
              viewports without scrolling. The Actions column stays pinned to the right edge of
              the scroll container (rather than the right edge of the page) so status actions
              are never clipped even if the table does need to scroll on a narrower screen. --}}
-        <div class="hidden overflow-x-auto rounded-2xl border border-zinc-200 lg:block dark:border-zinc-700">
-            <table class="w-full divide-y divide-zinc-200 text-left text-sm dark:divide-zinc-700">
-                <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
+        <div class="hidden overflow-x-auto rounded-2xl border border-emerald-100 lg:block dark:border-emerald-900/40">
+            <table class="w-full divide-y divide-emerald-100 text-left text-sm dark:divide-emerald-900/40">
+                <thead class="bg-emerald-50/60 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
                     <tr>
                         <th class="px-3 py-2.5 font-medium">Order</th>
                         <th class="px-3 py-2.5 font-medium">Customer</th>
@@ -161,15 +161,15 @@ $advanceStatus = function (int $orderId, UpdateOrderStatus $action) {
                         <th class="px-3 py-2.5 font-medium">Status</th>
                         <th class="px-3 py-2.5 font-medium text-right">Total</th>
                         <th class="px-3 py-2.5 font-medium">Placed</th>
-                        <th class="sticky right-0 bg-zinc-50 px-3 py-2.5 text-right font-medium shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.08)] dark:bg-zinc-900/60 dark:shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.3)]">
+                        <th class="sticky right-0 bg-emerald-50/60 px-3 py-2.5 text-right font-medium shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.08)] dark:bg-zinc-900/60 dark:shadow-[-8px_0_8px_-6px_rgba(0,0,0,0.3)]">
                             Actions
                         </th>
                     </tr>
                 </thead>
 
-                <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900/40">
+                <tbody class="divide-y divide-emerald-100 bg-white dark:divide-emerald-900/40 dark:bg-zinc-900">
                     @foreach ($this->orders as $order)
-                        <tr wire:key="admin-order-{{ $order->id }}">
+                        <tr wire:key="admin-order-{{ $order->id }}" class="transition hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10">
                             <td class="px-3 py-2.5 font-medium whitespace-nowrap">{{ $order->order_number }}</td>
                             <td class="px-3 py-2.5">
                                 <div class="flex flex-col">

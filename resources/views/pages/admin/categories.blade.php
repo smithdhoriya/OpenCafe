@@ -141,9 +141,9 @@ $delete = function (int $categoryId) {
         <flux:button wire:click="startCreate" variant="primary" icon="plus">Add category</flux:button>
     </div>
 
-    <div class="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-zinc-700">
-        <table class="w-full min-w-[640px] divide-y divide-zinc-200 text-left text-sm dark:divide-zinc-700">
-            <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
+    <div class="overflow-x-auto rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+        <table class="w-full min-w-[640px] divide-y divide-emerald-100 text-left text-sm dark:divide-emerald-900/40">
+            <thead class="bg-emerald-50/60 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
                 <tr>
                     <th class="px-4 py-3 font-medium">Name</th>
                     <th class="px-4 py-3 font-medium">Slug</th>
@@ -154,9 +154,9 @@ $delete = function (int $categoryId) {
                 </tr>
             </thead>
 
-            <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900/40">
+            <tbody class="divide-y divide-emerald-100 bg-white dark:divide-emerald-900/40 dark:bg-zinc-900">
                 @foreach ($this->categories as $category)
-                    <tr wire:key="admin-category-{{ $category->id }}">
+                    <tr wire:key="admin-category-{{ $category->id }}" class="transition hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10">
                         <td class="px-4 py-3 font-medium">{{ $category->name }}</td>
                         <td class="px-4 py-3 text-zinc-500 dark:text-zinc-400">{{ $category->slug }}</td>
                         <td class="px-4 py-3 text-right">{{ $category->menu_items_count }}</td>

@@ -30,7 +30,7 @@ mount(function (int $userId) {
     <x-admin.page-header heading="{{ $customer->name }}" subheading="Customer since {{ $customer->created_at?->format('d M Y') }}" />
 
     <div class="flex flex-col gap-6">
-        <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+        <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                 <div>
                     <flux:subheading>Email</flux:subheading>
@@ -51,7 +51,7 @@ mount(function (int $userId) {
             </div>
         </div>
 
-        <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+        <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
             <flux:subheading class="mb-3">Saved addresses ({{ $customer->customerAddresses->count() }})</flux:subheading>
 
             @if ($customer->customerAddresses->isEmpty())
@@ -59,7 +59,7 @@ mount(function (int $userId) {
             @else
                 <div class="flex flex-col gap-3">
                     @foreach ($customer->customerAddresses as $address)
-                        <div wire:key="admin-customer-address-{{ $address->id }}" class="rounded-xl border border-zinc-100 p-3 text-sm dark:border-zinc-700">
+                        <div wire:key="admin-customer-address-{{ $address->id }}" class="rounded-xl border border-emerald-100 p-3 text-sm dark:border-emerald-900/40">
                             <div class="flex items-center gap-2 font-medium">
                                 {{ $address->label ?: 'Address' }}
                                 @if ($address->is_default)
@@ -75,14 +75,14 @@ mount(function (int $userId) {
             @endif
         </div>
 
-        <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+        <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
             <flux:subheading class="mb-3">Orders ({{ $customer->orders->count() }})</flux:subheading>
 
             @if ($customer->orders->isEmpty())
                 <p class="text-sm text-zinc-500 dark:text-zinc-400">No orders placed yet.</p>
             @else
                 <div class="overflow-x-auto">
-                    <table class="w-full min-w-[520px] divide-y divide-zinc-200 text-left text-sm dark:divide-zinc-700">
+                    <table class="w-full min-w-[520px] divide-y divide-emerald-100 text-left text-sm dark:divide-emerald-900/40">
                         <thead class="text-xs uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
                             <tr>
                                 <th class="py-2 font-medium">Order</th>
@@ -93,12 +93,12 @@ mount(function (int $userId) {
                             </tr>
                         </thead>
 
-                        <tbody class="divide-y divide-zinc-200 dark:divide-zinc-700">
+                        <tbody class="divide-y divide-emerald-100 dark:divide-emerald-900/40">
                             @foreach ($customer->orders as $order)
                                 <tr wire:key="admin-customer-order-{{ $order->id }}">
                                     <td class="py-2 font-medium">{{ $order->order_number }}</td>
                                     <td class="py-2">
-                                        <flux:badge color="orange" size="sm">{{ ucfirst(str_replace('_', ' ', $order->status->value)) }}</flux:badge>
+                                        <x-admin.status-badge :status="$order->status" />
                                     </td>
                                     <td class="py-2 text-right"><x-customer.price :amount="$order->total" /></td>
                                     <td class="py-2 text-zinc-500 dark:text-zinc-400">{{ $order->placed_at?->format('d M Y') }}</td>

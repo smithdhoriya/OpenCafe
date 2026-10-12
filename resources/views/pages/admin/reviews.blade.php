@@ -86,18 +86,25 @@ $confirmReject = function () {
     </div>
 
     @if ($this->reviews->isEmpty())
-        <div class="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-16 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+        <div class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/40 px-6 py-16 text-center text-sm text-zinc-500 dark:border-emerald-900/40 dark:bg-emerald-950/10 dark:text-zinc-400">
             No reviews match this filter.
         </div>
     @else
         <div class="flex flex-col gap-4">
             @foreach ($this->reviews as $review)
-                <div wire:key="admin-review-{{ $review->id }}" class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+                <div wire:key="admin-review-{{ $review->id }}" class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
                     <div class="flex flex-wrap items-start justify-between gap-3">
                         <div class="flex flex-col gap-1">
                             <div class="flex items-center gap-2">
                                 <x-customer.star-rating :rating="$review->rating" />
-                                <flux:badge color="orange" size="sm">{{ ucfirst($review->status->value) }}</flux:badge>
+                                @php
+                                    $reviewBadgeColor = match ($review->status) {
+                                        ReviewStatus::Approved => 'lime',
+                                        ReviewStatus::Rejected => 'red',
+                                        ReviewStatus::Pending => 'amber',
+                                    };
+                                @endphp
+                                <flux:badge :color="$reviewBadgeColor" size="sm">{{ ucfirst($review->status->value) }}</flux:badge>
                             </div>
 
                             <span class="text-sm text-zinc-500 dark:text-zinc-400">

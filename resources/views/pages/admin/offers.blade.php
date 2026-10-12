@@ -431,29 +431,29 @@ $deleteCombo = function (int $comboId) {
     <x-admin.page-header heading="Offers & Combos" subheading="Promo codes and bundled deals for OpenCafe." />
 
     <div class="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+        <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
             <flux:subheading>Active Offers</flux:subheading>
             <flux:heading size="xl" class="mt-1">{{ $this->activeOffersCount }}</flux:heading>
         </div>
 
-        <div class="rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+        <div class="rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
             <flux:subheading>Active Combos</flux:subheading>
             <flux:heading size="xl" class="mt-1">{{ $this->activeCombosCount }}</flux:heading>
         </div>
     </div>
 
-    <div class="mb-6 flex gap-2 border-b border-zinc-200 dark:border-zinc-700">
+    <div class="mb-6 flex gap-2 border-b border-emerald-100 dark:border-emerald-900/40">
         <button
             type="button"
             wire:click="$set('activeTab', 'offers')"
-            class="border-b-2 px-4 py-2 text-sm font-medium {{ $activeTab === 'offers' ? 'border-orange-500 text-orange-600 dark:text-orange-400' : 'border-transparent text-zinc-500 dark:text-zinc-400' }}"
+            class="border-b-2 px-4 py-2 text-sm font-medium {{ $activeTab === 'offers' ? 'border-emerald-600 text-emerald-700 dark:border-emerald-500 dark:text-emerald-400' : 'border-transparent text-zinc-500 dark:text-zinc-400' }}"
         >
             Offers
         </button>
         <button
             type="button"
             wire:click="$set('activeTab', 'combos')"
-            class="border-b-2 px-4 py-2 text-sm font-medium {{ $activeTab === 'combos' ? 'border-orange-500 text-orange-600 dark:text-orange-400' : 'border-transparent text-zinc-500 dark:text-zinc-400' }}"
+            class="border-b-2 px-4 py-2 text-sm font-medium {{ $activeTab === 'combos' ? 'border-emerald-600 text-emerald-700 dark:border-emerald-500 dark:text-emerald-400' : 'border-transparent text-zinc-500 dark:text-zinc-400' }}"
         >
             Combos
         </button>
@@ -475,13 +475,13 @@ $deleteCombo = function (int $comboId) {
         </div>
 
         @if ($this->offers->isEmpty())
-            <div class="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-16 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+            <div class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/40 px-6 py-16 text-center text-sm text-zinc-500 dark:border-emerald-900/40 dark:bg-emerald-950/10 dark:text-zinc-400">
                 No offers match your filters.
             </div>
         @else
-            <div class="overflow-x-auto rounded-2xl border border-zinc-200 dark:border-zinc-700">
-                <table class="w-full min-w-[760px] divide-y divide-zinc-200 text-left text-sm dark:divide-zinc-700">
-                    <thead class="bg-zinc-50 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
+            <div class="overflow-x-auto rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+                <table class="w-full min-w-[760px] divide-y divide-emerald-100 text-left text-sm dark:divide-emerald-900/40">
+                    <thead class="bg-emerald-50/60 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
                         <tr>
                             <th class="px-4 py-3 font-medium">Offer</th>
                             <th class="px-4 py-3 font-medium">Code</th>
@@ -492,9 +492,9 @@ $deleteCombo = function (int $comboId) {
                         </tr>
                     </thead>
 
-                    <tbody class="divide-y divide-zinc-200 bg-white dark:divide-zinc-700 dark:bg-zinc-900/40">
+                    <tbody class="divide-y divide-emerald-100 bg-white dark:divide-emerald-900/40 dark:bg-zinc-900">
                         @foreach ($this->offers as $offer)
-                            <tr wire:key="admin-offer-{{ $offer->id }}">
+                            <tr wire:key="admin-offer-{{ $offer->id }}" class="transition hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10">
                                 <td class="px-4 py-3 font-medium">{{ $offer->name }}</td>
                                 <td class="px-4 py-3"><flux:badge color="orange" size="sm" class="font-mono">{{ $offer->code }}</flux:badge></td>
                                 <td class="px-4 py-3 text-zinc-500 dark:text-zinc-400">
@@ -545,13 +545,13 @@ $deleteCombo = function (int $comboId) {
         </div>
 
         @if ($this->combos->isEmpty())
-            <div class="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-16 text-center text-sm text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900/40 dark:text-zinc-400">
+            <div class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/40 px-6 py-16 text-center text-sm text-zinc-500 dark:border-emerald-900/40 dark:bg-emerald-950/10 dark:text-zinc-400">
                 No combos match your filters.
             </div>
         @else
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 @foreach ($this->combos as $combo)
-                    <div wire:key="admin-combo-{{ $combo->id }}" class="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-5 dark:border-zinc-700 dark:bg-zinc-900/60">
+                    <div wire:key="admin-combo-{{ $combo->id }}" class="flex flex-col gap-3 rounded-2xl border border-emerald-100 bg-white p-5 dark:border-emerald-900/40 dark:bg-zinc-900">
                         <div class="flex items-start justify-between gap-2">
                             <flux:heading size="sm">{{ $combo->name }}</flux:heading>
                             <flux:badge :color="$combo->isCurrentlyAvailable() ? 'lime' : 'zinc'" size="sm">
@@ -665,7 +665,7 @@ $deleteCombo = function (int $comboId) {
 
                 <div class="flex flex-col gap-2">
                     @forelse ($comboItems as $index => $row)
-                        <div wire:key="combo-item-row-{{ $index }}" class="flex items-center justify-between gap-3 rounded-lg border border-zinc-200 px-3 py-2 text-sm dark:border-zinc-700">
+                        <div wire:key="combo-item-row-{{ $index }}" class="flex items-center justify-between gap-3 rounded-lg border border-emerald-100 px-3 py-2 text-sm dark:border-emerald-900/40">
                             <span>{{ $row['quantity'] }} &times; {{ $row['name'] }}</span>
                             <flux:button type="button" wire:click="removeComboItem({{ $index }})" variant="ghost" size="sm" icon="x-mark" square aria-label="Remove item" />
                         </div>

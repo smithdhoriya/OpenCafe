@@ -10,7 +10,7 @@ test('the admin layout defines both light and dark background and text colors on
     $response = $this->actingAs($admin)->get(route('admin.dashboard'));
 
     $response->assertOk();
-    $response->assertSee('bg-white text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100', false);
+    $response->assertSee('bg-amber-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100', false);
 });
 
 test('every admin page listed for the dark-mode audit renders successfully for an admin', function () {

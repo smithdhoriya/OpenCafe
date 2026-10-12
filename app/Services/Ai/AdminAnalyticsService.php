@@ -145,6 +145,46 @@ class AdminAnalyticsService
     }
 
     /**
+     * Per-day paid revenue and order count across a date range, with every
+     * day present (zero-filled) even if no orders were placed — used only
+     * for the Admin AI's sales trend chart, not fed into the assistant's
+     * prompt. Same revenue rule as salesSummary(): paid orders only.
+     *
+     * @return list<array{date: string, revenue: float, orders_placed: int}>
+     */
+    public function dailySalesTrend(Carbon $from, Carbon $to): array
+    {
+        [$from, $to] = $this->normalizeRange($from, $to);
+
+        $byDay = Order::query()
+            ->where('payment_status', PaymentStatus::Paid)
+            ->whereBetween('placed_at', [$from, $to])
+            ->selectRaw('DATE(placed_at) as day, SUM(total) as revenue, COUNT(*) as orders_placed')
+            ->groupBy('day')
+            ->get()
+            ->keyBy('day');
+
+        $days = [];
+        $cursor = $from->copy()->startOfDay();
+        $end = $to->copy()->startOfDay();
+
+        while ($cursor->lte($end)) {
+            $key = $cursor->toDateString();
+            $row = $byDay->get($key);
+
+            $days[] = [
+                'date' => $key,
+                'revenue' => round((float) ($row->revenue ?? 0), 2),
+                'orders_placed' => (int) ($row->orders_placed ?? 0),
+            ];
+
+            $cursor->addDay();
+        }
+
+        return $days;
+    }
+
+    /**
      * All-time order counts per status — the same figures the admin
      * dashboard shows, so the assistant never contradicts it.
      *
