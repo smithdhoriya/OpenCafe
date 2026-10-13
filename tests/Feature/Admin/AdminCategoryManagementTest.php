@@ -15,6 +15,28 @@ test('an admin can view the categories list', function () {
         ->assertSee('Beverages');
 });
 
+test('the categories page shows a themed empty state when there are no categories yet', function () {
+    $admin = User::factory()->admin()->create();
+
+    expect(MenuCategory::count())->toBe(0);
+
+    $this->actingAs($admin)
+        ->get(route('admin.categories'))
+        ->assertOk()
+        ->assertSee('No categories yet. Add your first category to start organizing the menu.');
+});
+
+test('the categories empty state is replaced by the table once a category exists', function () {
+    $admin = User::factory()->admin()->create();
+    MenuCategory::factory()->create(['name' => 'Beverages']);
+
+    $this->actingAs($admin)
+        ->get(route('admin.categories'))
+        ->assertOk()
+        ->assertSee('Beverages')
+        ->assertDontSee('No categories yet. Add your first category to start organizing the menu.');
+});
+
 test('a customer cannot access admin categories', function () {
     $customer = User::factory()->create();
 

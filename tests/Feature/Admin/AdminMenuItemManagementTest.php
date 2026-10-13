@@ -21,6 +21,42 @@ test('an admin can view the menu items list', function () {
         ->assertSee('Cold Brew');
 });
 
+test('the menu page subheading shows the real, live total item count', function () {
+    $admin = User::factory()->admin()->create();
+    MenuItem::factory()->count(3)->create();
+
+    $this->actingAs($admin)
+        ->get(route('admin.menu'))
+        ->assertOk()
+        ->assertSee('All 3 menu items across every category.');
+});
+
+test('the menu item count in the subheading updates after an item is created', function () {
+    $admin = User::factory()->admin()->create();
+    MenuItem::factory()->count(2)->create();
+
+    Volt::actingAs($admin)
+        ->test('admin.menu')
+        ->assertSee('All 2 menu items across every category.')
+        ->set('menu_category_id', MenuCategory::factory()->create()->id)
+        ->set('name', 'Fresh Lime Soda')
+        ->set('slug', 'fresh-lime-soda')
+        ->set('base_price', 4.50)
+        ->call('save')
+        ->assertSee('All 3 menu items across every category.');
+});
+
+test('the menu item count in the subheading updates after an item is deleted', function () {
+    $admin = User::factory()->admin()->create();
+    $items = MenuItem::factory()->count(2)->create();
+
+    Volt::actingAs($admin)
+        ->test('admin.menu')
+        ->assertSee('All 2 menu items across every category.')
+        ->call('delete', $items->first()->id)
+        ->assertSee('All 1 menu item across every category.');
+});
+
 test('a customer cannot access admin menu management', function () {
     $customer = User::factory()->create();
 

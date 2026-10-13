@@ -264,3 +264,66 @@ test('cafe settings omit anything not actually configured', function () {
     expect($settings['name'])->toBeNull()
         ->and($settings['address'])->toBeNull();
 });
+
+test('daily sales trend returns one zero-filled entry per day in the range, even with no orders', function () {
+    $from = now()->subDays(2)->startOfDay();
+    $to = now()->startOfDay();
+
+    $trend = $this->analytics->dailySalesTrend($from, $to);
+
+    expect($trend)->toHaveCount(3)
+        ->and(collect($trend)->pluck('revenue')->unique()->all())->toBe([0.0])
+        ->and(collect($trend)->pluck('orders_placed')->unique()->all())->toBe([0]);
+
+    expect($trend[0]['date'])->toBe($from->toDateString())
+        ->and($trend[2]['date'])->toBe($to->toDateString());
+});
+
+test('daily sales trend attributes paid revenue to the correct calendar day and ignores unpaid orders', function () {
+    $customer = User::factory()->create();
+    $today = now()->startOfDay();
+    $yesterday = $today->copy()->subDay();
+
+    Order::factory()->for($customer)->create([
+        'payment_status' => PaymentStatus::Paid,
+        'total' => 30,
+        'placed_at' => $yesterday->copy()->addHours(10),
+    ]);
+    Order::factory()->for($customer)->create([
+        'payment_status' => PaymentStatus::Paid,
+        'total' => 20,
+        'placed_at' => $yesterday->copy()->addHours(14),
+    ]);
+    Order::factory()->for($customer)->create([
+        'payment_status' => PaymentStatus::Unpaid,
+        'total' => 500,
+        'placed_at' => $yesterday->copy()->addHours(12),
+    ]);
+    Order::factory()->for($customer)->create([
+        'payment_status' => PaymentStatus::Paid,
+        'total' => 15,
+        'placed_at' => $today->copy()->addHours(9),
+    ]);
+
+    $trend = collect($this->analytics->dailySalesTrend($yesterday, $today->copy()->endOfDay()))->keyBy('date');
+
+    expect($trend[$yesterday->toDateString()]['revenue'])->toBe(50.0)
+        ->and($trend[$yesterday->toDateString()]['orders_placed'])->toBe(2)
+        ->and($trend[$today->toDateString()]['revenue'])->toBe(15.0)
+        ->and($trend[$today->toDateString()]['orders_placed'])->toBe(1);
+});
+
+test('daily sales trend normalizes an inverted date range instead of returning nothing', function () {
+    $customer = User::factory()->create();
+    $today = now()->startOfDay();
+
+    Order::factory()->for($customer)->create([
+        'payment_status' => PaymentStatus::Paid,
+        'total' => 10,
+        'placed_at' => $today,
+    ]);
+
+    $trend = $this->analytics->dailySalesTrend($today, $today->copy()->subDays(2));
+
+    expect($trend)->toHaveCount(3);
+});

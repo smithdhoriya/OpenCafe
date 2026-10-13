@@ -43,6 +43,8 @@ updated([
 
 $categoryOptions = computed(fn () => MenuCategory::query()->orderBy('sort_order')->orderBy('name')->get());
 
+$totalMenuItemsCount = computed(fn () => MenuItem::query()->count());
+
 $items = computed(function () {
     $term = '%'.trim($this->search).'%';
 
@@ -194,7 +196,10 @@ $delete = function (int $menuItemId) {
 
 <div>
     <div class="mb-6 flex items-center justify-between">
-        <x-admin.page-header heading="Menu" subheading="All 45 menu items across every category." />
+        <x-admin.page-header
+            heading="Menu"
+            subheading="All {{ number_format($this->totalMenuItemsCount) }} menu {{ Str::plural('item', $this->totalMenuItemsCount) }} across every category."
+        />
 
         <flux:button wire:click="startCreate" variant="primary" icon="plus">Add item</flux:button>
     </div>

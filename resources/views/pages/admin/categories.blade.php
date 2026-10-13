@@ -141,51 +141,57 @@ $delete = function (int $categoryId) {
         <flux:button wire:click="startCreate" variant="primary" icon="plus">Add category</flux:button>
     </div>
 
-    <div class="overflow-x-auto rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
-        <table class="w-full min-w-[640px] divide-y divide-emerald-100 text-left text-sm dark:divide-emerald-900/40">
-            <thead class="bg-emerald-50/60 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
-                <tr>
-                    <th class="px-4 py-3 font-medium">Name</th>
-                    <th class="px-4 py-3 font-medium">Slug</th>
-                    <th class="px-4 py-3 font-medium text-right">Items</th>
-                    <th class="px-4 py-3 font-medium">Status</th>
-                    <th class="px-4 py-3 font-medium text-right">Order</th>
-                    <th class="px-4 py-3"></th>
-                </tr>
-            </thead>
-
-            <tbody class="divide-y divide-emerald-100 bg-white dark:divide-emerald-900/40 dark:bg-zinc-900">
-                @foreach ($this->categories as $category)
-                    <tr wire:key="admin-category-{{ $category->id }}" class="transition hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10">
-                        <td class="px-4 py-3 font-medium">{{ $category->name }}</td>
-                        <td class="px-4 py-3 text-zinc-500 dark:text-zinc-400">{{ $category->slug }}</td>
-                        <td class="px-4 py-3 text-right">{{ $category->menu_items_count }}</td>
-                        <td class="px-4 py-3">
-                            <flux:badge :color="$category->is_active ? 'lime' : 'zinc'" size="sm">
-                                {{ $category->is_active ? 'Active' : 'Inactive' }}
-                            </flux:badge>
-                        </td>
-                        <td class="px-4 py-3 text-right">{{ $category->sort_order }}</td>
-                        <td class="px-4 py-3 text-right whitespace-nowrap">
-                            <flux:button wire:click="toggleActive({{ $category->id }})" variant="ghost" size="sm">
-                                {{ $category->is_active ? 'Deactivate' : 'Activate' }}
-                            </flux:button>
-                            <flux:button wire:click="startEdit({{ $category->id }})" variant="ghost" size="sm" icon="pencil" square aria-label="Edit category" />
-                            <flux:button
-                                wire:click="delete({{ $category->id }})"
-                                wire:confirm="Delete this category? This cannot be undone."
-                                variant="ghost"
-                                size="sm"
-                                icon="trash"
-                                square
-                                aria-label="Delete category"
-                            />
-                        </td>
+    @if ($this->categories->isEmpty())
+        <div class="rounded-2xl border border-dashed border-emerald-200 bg-emerald-50/40 px-6 py-16 text-center text-sm text-zinc-500 dark:border-emerald-900/40 dark:bg-emerald-950/10 dark:text-zinc-400">
+            No categories yet. Add your first category to start organizing the menu.
+        </div>
+    @else
+        <div class="overflow-x-auto rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+            <table class="w-full min-w-[640px] divide-y divide-emerald-100 text-left text-sm dark:divide-emerald-900/40">
+                <thead class="bg-emerald-50/60 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900/60 dark:text-zinc-400">
+                    <tr>
+                        <th class="px-4 py-3 font-medium">Name</th>
+                        <th class="px-4 py-3 font-medium">Slug</th>
+                        <th class="px-4 py-3 font-medium text-right">Items</th>
+                        <th class="px-4 py-3 font-medium">Status</th>
+                        <th class="px-4 py-3 font-medium text-right">Order</th>
+                        <th class="px-4 py-3"></th>
                     </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
+                </thead>
+
+                <tbody class="divide-y divide-emerald-100 bg-white dark:divide-emerald-900/40 dark:bg-zinc-900">
+                    @foreach ($this->categories as $category)
+                        <tr wire:key="admin-category-{{ $category->id }}" class="transition hover:bg-emerald-50/40 dark:hover:bg-emerald-900/10">
+                            <td class="px-4 py-3 font-medium">{{ $category->name }}</td>
+                            <td class="px-4 py-3 text-zinc-500 dark:text-zinc-400">{{ $category->slug }}</td>
+                            <td class="px-4 py-3 text-right">{{ $category->menu_items_count }}</td>
+                            <td class="px-4 py-3">
+                                <flux:badge :color="$category->is_active ? 'lime' : 'zinc'" size="sm">
+                                    {{ $category->is_active ? 'Active' : 'Inactive' }}
+                                </flux:badge>
+                            </td>
+                            <td class="px-4 py-3 text-right">{{ $category->sort_order }}</td>
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <flux:button wire:click="toggleActive({{ $category->id }})" variant="ghost" size="sm">
+                                    {{ $category->is_active ? 'Deactivate' : 'Activate' }}
+                                </flux:button>
+                                <flux:button wire:click="startEdit({{ $category->id }})" variant="ghost" size="sm" icon="pencil" square aria-label="Edit category" />
+                                <flux:button
+                                    wire:click="delete({{ $category->id }})"
+                                    wire:confirm="Delete this category? This cannot be undone."
+                                    variant="ghost"
+                                    size="sm"
+                                    icon="trash"
+                                    square
+                                    aria-label="Delete category"
+                                />
+                            </td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+    @endif
 
     <flux:modal wire:model.self="showForm" class="w-full max-w-lg" @close="resetForm">
         <form wire:submit="save" class="space-y-6">

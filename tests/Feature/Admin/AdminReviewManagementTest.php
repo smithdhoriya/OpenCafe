@@ -101,6 +101,31 @@ test('a rejected review can later be approved by an admin', function () {
     expect($review->is_visible)->toBeTrue();
 });
 
+test('a pending, approved, and rejected review each render a visibly different badge color', function () {
+    $admin = User::factory()->admin()->create();
+
+    Review::factory()->pending()->create();
+    $pendingHtml = $this->actingAs($admin)->get(route('admin.reviews'))->assertOk()->getContent();
+    Review::query()->delete();
+
+    Review::factory()->create(); // default status is Approved
+    $approvedHtml = $this->actingAs($admin)->get(route('admin.reviews'))->assertOk()->getContent();
+    Review::query()->delete();
+
+    Review::factory()->rejected()->create();
+    $rejectedHtml = $this->actingAs($admin)->get(route('admin.reviews'))->assertOk()->getContent();
+
+    expect($pendingHtml)->toContain('-amber-');
+    expect($approvedHtml)->toContain('-lime-');
+    expect($rejectedHtml)->toContain('-red-');
+
+    // The view must keep resolving the badge color dynamically per status,
+    // not fall back to one static color for every review as it did before.
+    expect(file_get_contents(resource_path('views/pages/admin/reviews.blade.php')))
+        ->toContain('$reviewBadgeColor')
+        ->not->toContain('color="orange"');
+});
+
 test('the reviews list is paginated', function () {
     $admin = User::factory()->admin()->create();
 

@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\OrderStatus;
 use App\Models\CustomerAddress;
 use App\Models\Order;
 use App\Models\User;
@@ -122,6 +123,30 @@ test('an admin cannot view an admin or staff account through the customer detail
     $this->actingAs($admin)
         ->get(route('admin.customers.show', $otherAdmin))
         ->assertNotFound();
+});
+
+test('the customer detail page renders a distinct badge color per order status, not one hardcoded color for every order', function () {
+    $admin = User::factory()->admin()->create();
+    $customer = User::factory()->create();
+
+    Order::factory()->for($customer)->create(['status' => OrderStatus::Cancelled]);
+    Order::factory()->for($customer)->create(['status' => OrderStatus::Completed]);
+
+    $html = $this->actingAs($admin)
+        ->get(route('admin.customers.show', $customer))
+        ->assertOk()
+        ->getContent();
+
+    // Cancelled and Completed must render visibly different badge colors —
+    // the page used to hardcode every order on this screen to "orange".
+    expect($html)->toContain('-red-')
+        ->toContain('-emerald-')
+        ->not->toContain('color="orange"');
+
+    // The order rows must keep using the shared, per-status badge component
+    // rather than reverting to a single hardcoded badge color.
+    expect(file_get_contents(resource_path('views/pages/admin/customers/show.blade.php')))
+        ->toContain('x-admin.status-badge');
 });
 
 test('a customer cannot access the admin customer detail page', function () {

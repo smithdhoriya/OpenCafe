@@ -176,7 +176,11 @@ class CreateOrderFromCart
      */
     private function resolveOffer(User $user, string $offerCode, float $subtotal): array
     {
-        $offer = Offer::query()->where('code', Str::upper(trim($offerCode)))->first();
+        // Locked for the lifetime of this transaction (same as the cart above) so a
+        // second, near-simultaneous checkout against the same code can't both read
+        // "uses remaining" before either increments — without this, a capped offer
+        // could be oversold by one or more uses under concurrent requests.
+        $offer = Offer::query()->where('code', Str::upper(trim($offerCode)))->lockForUpdate()->first();
 
         if (! $offer || ! $offer->isCurrentlyActive()) {
             throw ValidationException::withMessages(['offer' => 'This offer code is not valid.']);

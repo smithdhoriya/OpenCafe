@@ -67,9 +67,21 @@ updated([
     'comboStatusFilter' => fn () => $this->resetPage('combos-page'),
 ]);
 
-$activeOffersCount = computed(fn () => Offer::all()->filter(fn ($offer) => $offer->isCurrentlyActive())->count());
+// Mirrors Offer::isCurrentlyActive() / Combo::isCurrentlyAvailable() as SQL
+// conditions instead of loading every row into PHP just to count a few —
+// both resolve to: flag is on, and now falls inside the optional start/end
+// window (null bounds meaning that side is unrestricted).
+$activeOffersCount = computed(fn () => Offer::query()
+    ->where('is_active', true)
+    ->where(fn ($query) => $query->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+    ->where(fn ($query) => $query->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
+    ->count());
 
-$activeCombosCount = computed(fn () => Combo::all()->filter(fn ($combo) => $combo->isCurrentlyAvailable())->count());
+$activeCombosCount = computed(fn () => Combo::query()
+    ->where('is_available', true)
+    ->where(fn ($query) => $query->whereNull('starts_at')->orWhere('starts_at', '<=', now()))
+    ->where(fn ($query) => $query->whereNull('ends_at')->orWhere('ends_at', '>=', now()))
+    ->count());
 
 $menuItemOptions = computed(fn () => MenuItem::query()->orderBy('name')->get());
 
