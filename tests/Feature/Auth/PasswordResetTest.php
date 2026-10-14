@@ -64,3 +64,82 @@ test('password can be reset with valid token', function () {
         return true;
     });
 });
+
+test('password cannot be reset with an invalid token', function () {
+    $user = User::factory()->create();
+    $originalPassword = $user->password;
+
+    Volt::test('auth.reset-password', ['token' => 'this-token-does-not-exist'])
+        ->set('email', $user->email)
+        ->set('password', 'new-password')
+        ->set('password_confirmation', 'new-password')
+        ->call('resetPassword')
+        ->assertHasErrors('email');
+
+    expect($user->fresh()->password)->toBe($originalPassword);
+});
+
+test('password cannot be reset with an expired token', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+    $originalPassword = $user->password;
+
+    Volt::test('auth.forgot-password')
+        ->set('email', $user->email)
+        ->call('sendPasswordResetLink');
+
+    $capturedToken = null;
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use (&$capturedToken) {
+        $capturedToken = $notification->token;
+
+        return true;
+    });
+
+    // config/auth.php: passwords.users.expire is 60 minutes.
+    $this->travel(61)->minutes();
+
+    Volt::test('auth.reset-password', ['token' => $capturedToken])
+        ->set('email', $user->email)
+        ->set('password', 'new-password')
+        ->set('password_confirmation', 'new-password')
+        ->call('resetPassword')
+        ->assertHasErrors('email');
+
+    expect($user->fresh()->password)->toBe($originalPassword);
+});
+
+test('a used reset token cannot be reused', function () {
+    Notification::fake();
+
+    $user = User::factory()->create();
+
+    Volt::test('auth.forgot-password')
+        ->set('email', $user->email)
+        ->call('sendPasswordResetLink');
+
+    $capturedToken = null;
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use (&$capturedToken) {
+        $capturedToken = $notification->token;
+
+        return true;
+    });
+
+    Volt::test('auth.reset-password', ['token' => $capturedToken])
+        ->set('email', $user->email)
+        ->set('password', 'password')
+        ->set('password_confirmation', 'password')
+        ->call('resetPassword')
+        ->assertHasNoErrors();
+
+    $passwordAfterFirstReset = $user->fresh()->password;
+
+    Volt::test('auth.reset-password', ['token' => $capturedToken])
+        ->set('email', $user->email)
+        ->set('password', 'another-password')
+        ->set('password_confirmation', 'another-password')
+        ->call('resetPassword')
+        ->assertHasErrors('email');
+
+    expect($user->fresh()->password)->toBe($passwordAfterFirstReset);
+});

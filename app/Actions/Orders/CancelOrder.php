@@ -5,10 +5,13 @@ namespace App\Actions\Orders;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
+use App\Notifications\OrderStatusChanged;
 use Illuminate\Validation\ValidationException;
 
 class CancelOrder
 {
+    public function __construct(private readonly NotifyOrderCustomer $notifyOrderCustomer) {}
+
     /**
      * Cancel one of the authenticated user's orders, but only while it is still
      * Pending. Ownership scoping and the status check happen in the same
@@ -41,6 +44,8 @@ class CancelOrder
         $order->status = OrderStatus::Cancelled;
         $order->cancelled_at = $cancelledAt;
         $order->cancellation_reason = 'Cancelled by customer';
+
+        $this->notifyOrderCustomer->handle($order, new OrderStatusChanged($order));
 
         return $order;
     }

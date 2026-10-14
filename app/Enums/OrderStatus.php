@@ -48,6 +48,22 @@ enum OrderStatus: string
     }
 
     /**
+     * Whether reaching this status is worth emailing the customer about.
+     *
+     * Pending is excluded because the order-confirmation email already covers
+     * that moment. Preparing is excluded as a kitchen-internal step that
+     * isn't actionable for the customer. Every other status is a meaningful,
+     * customer-visible milestone.
+     */
+    public function notifiesCustomer(): bool
+    {
+        return match ($this) {
+            self::Pending, self::Preparing => false,
+            self::Confirmed, self::Ready, self::OutForDelivery, self::Completed, self::Cancelled, self::Refunded => true,
+        };
+    }
+
+    /**
      * The single "next step" in the normal happy-path lifecycle, excluding the
      * side-paths (Cancelled/Refunded). Null once the order is in a terminal or
      * side-path state. Used to offer a one-click "advance" action.

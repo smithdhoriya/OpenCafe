@@ -2,6 +2,7 @@
 
 use App\Livewire\Actions\Logout;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Session;
 use Livewire\Attributes\Layout;
 use Livewire\Volt\Component;
@@ -17,6 +18,18 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
             return;
         }
+
+        // Matches the throttle already applied to the signed verify link route
+        // (throttle:6,1) — this is the user-initiated counterpart to that limit.
+        $throttleKey = 'verification-notification:'.Auth::id();
+
+        if (RateLimiter::tooManyAttempts($throttleKey, 6)) {
+            Session::flash('status', 'verification-link-throttled');
+
+            return;
+        }
+
+        RateLimiter::hit($throttleKey, 60);
 
         Auth::user()->sendEmailVerificationNotification();
 
@@ -42,7 +55,11 @@ new #[Layout('components.layouts.auth')] class extends Component {
 
     <x-auth-session-status
         class="text-center"
-        :status="session('status') === 'verification-link-sent' ? __('A new verification link has been sent to the email address you provided during registration.') : null"
+        :status="match (session('status')) {
+            'verification-link-sent' => __('A new verification link has been sent to the email address you provided during registration.'),
+            'verification-link-throttled' => __('Too many verification emails requested. Please wait a minute before trying again.'),
+            default => null,
+        }"
     />
 
     <div class="flex flex-col items-center justify-center gap-3">

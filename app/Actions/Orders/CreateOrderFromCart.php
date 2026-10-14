@@ -15,6 +15,7 @@ use App\Models\Order;
 use App\Models\OrderDelivery;
 use App\Models\OrderItem;
 use App\Models\User;
+use App\Notifications\OrderConfirmation;
 use App\Support\Geo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -22,6 +23,8 @@ use Illuminate\Validation\ValidationException;
 
 class CreateOrderFromCart
 {
+    public function __construct(private readonly NotifyOrderCustomer $notifyOrderCustomer) {}
+
     /**
      * Convert the authenticated user's active cart into a real Order, Order Items,
      * and (for delivery) an OrderDelivery row — recalculating everything server-side.
@@ -32,7 +35,7 @@ class CreateOrderFromCart
      */
     public function handle(User $user, OrderType $fulfillmentType, ?int $selectedAddressId, ?string $offerCode = null): Order
     {
-        return DB::transaction(function () use ($user, $fulfillmentType, $selectedAddressId, $offerCode) {
+        $order = DB::transaction(function () use ($user, $fulfillmentType, $selectedAddressId, $offerCode) {
             $cart = Cart::query()
                 ->where('user_id', $user->id)
                 ->where('status', CartStatus::Active)
@@ -166,6 +169,12 @@ class CreateOrderFromCart
 
             return $order;
         });
+
+        // Only ever reached once the transaction above has actually committed —
+        // a failed/rolled-back order creation never reaches this line.
+        $this->notifyOrderCustomer->handle($order, new OrderConfirmation($order));
+
+        return $order;
     }
 
     /**

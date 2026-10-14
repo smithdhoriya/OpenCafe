@@ -5,10 +5,13 @@ namespace App\Actions\Orders;
 use App\Enums\OrderStatus;
 use App\Models\Order;
 use App\Models\User;
+use App\Notifications\OrderStatusChanged;
 use Illuminate\Validation\ValidationException;
 
 class UpdateOrderStatus
 {
+    public function __construct(private readonly NotifyOrderCustomer $notifyOrderCustomer) {}
+
     /**
      * Move an order to a new status, as an admin action.
      *
@@ -59,6 +62,10 @@ class UpdateOrderStatus
         }
 
         $order->forceFill($attributes);
+
+        if ($to->notifiesCustomer()) {
+            $this->notifyOrderCustomer->handle($order, new OrderStatusChanged($order));
+        }
 
         return $order;
     }
